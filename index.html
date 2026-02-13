@@ -460,11 +460,14 @@
         saveCurrentProfileProgress();
         updateStats();
         
+        // If there's a hint showing (shorter code or error), give more time to read
+        const hasHint = DOM.hintDisplay.textContent !== '';
+        const delay = isCorrect ? (hasHint ? 800 : 100) : 800;
         setTimeout(() => {
             DOM.hintDisplay.textContent = '';
-            DOM.hintDisplay.classList.remove('status-error');
+            DOM.hintDisplay.classList.remove('status-error', 'status-success');
             nextCharacter();
-        }, isCorrect ? 100 : 800);
+        }, delay);
     }
     
     function showStatusMessage(msg, options = {}) {
@@ -732,6 +735,12 @@
         
         if (correctCodes.includes(userInput)) {
             flashFeedback(true);
+            // Check if there's a shorter code
+            const shorterCodes = correctCodes.filter(code => code.length < userInput.length);
+            if (shorterCodes.length > 0) {
+                DOM.hintDisplay.textContent = `更短: ${shorterCodes.join(' / ')}`;
+                DOM.hintDisplay.classList.add('status-success');
+            }
             handleInputComplete(true, userInput);
         }
     });
