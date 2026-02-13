@@ -458,6 +458,7 @@
         
         stat.nextReview = now + stat.interval * 60000;
         saveCurrentProfileProgress();
+        updateStats();
         
         setTimeout(() => {
             DOM.hintDisplay.textContent = '';
