@@ -15,8 +15,36 @@
             --dark-gray-color: #6c757d;
             --dark-gray-hover-color: #5a6268;
             --text-color: #212529;
+            --text-muted-color: #666;
             --bg-color: #fff;
+            --border-light-color: #eee;
+            --disabled-color: #aaa;
+            --success-color: #28a745;
             --border-radius: 8px;
+        }
+        [data-theme="dark"] {
+            --primary-color: #4da3ff;
+            --primary-hover-color: #7ab8ff;
+            --danger-color: #ff6b7a;
+            --danger-hover-color: #ff8a96;
+            --light-gray-color: #1e1e1e;
+            --medium-gray-color: #3a3a3a;
+            --dark-gray-color: #a0a0a0;
+            --dark-gray-hover-color: #b0b0b0;
+            --text-color: #e0e0e0;
+            --text-muted-color: #999;
+            --bg-color: #2a2a2a;
+            --border-light-color: #444;
+            --disabled-color: #555;
+            --success-color: #4ade80;
+        }
+        [data-theme="dark"] select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a0a0a0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        }
+        [data-theme="dark"] input[type="text"],
+        [data-theme="dark"] textarea,
+        [data-theme="dark"] select {
+            color: var(--text-color);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -45,6 +73,12 @@
             min-height: 70px;
             font-weight: 600;
         }
+        .app-title {
+            font-size: 1.8rem;
+            min-height: auto;
+            color: var(--primary-color);
+            letter-spacing: 2px;
+        }
         #hint-display {
             font-size: 1.1rem;
             color: var(--dark-gray-color);
@@ -59,7 +93,7 @@
             font-size: 0.9rem;
             margin: 0;
         }
-        .status-success { color: #28a745 !important; }
+        .status-success { color: var(--success-color) !important; }
         .status-error { color: var(--danger-color) !important; }
         #typing-input {
             font-family: 'SF Mono', 'Menlo', 'Monaco', monospace;
@@ -118,7 +152,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        button:disabled { background-color: #aaa; cursor: not-allowed; transform: none; box-shadow: none; border-color: transparent; color: white; }
+        button:disabled { background-color: var(--disabled-color); cursor: not-allowed; transform: none; box-shadow: none; border-color: transparent; color: var(--text-color); }
 
         .btn-primary {
             background-color: var(--primary-color);
@@ -137,13 +171,17 @@
             transform: translateY(-1px);
         }
         #clear-progress-btn {
-            background-color: transparent;
-            color: var(--danger-color);
-            border-color: var(--danger-color);
+            width: auto;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            background-color: var(--light-gray-color);
+            color: var(--dark-gray-color);
+            border-color: var(--medium-gray-color);
         }
         #clear-progress-btn:hover {
             background-color: var(--danger-color);
             color: white;
+            border-color: var(--danger-color);
             transform: translateY(-1px);
         }
         #exit-practice-btn {
@@ -186,14 +224,35 @@
         }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
         .shake { animation: shake 0.5s ease-in-out; }
+        #theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.2rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        #theme-toggle:hover {
+            opacity: 1;
+            transform: none;
+        }
     </style>
 </head>
 <body>
   <div class="container">
+    <button id="theme-toggle" title="切换深色模式">☀️</button>
     <button id="exit-practice-btn" style="display: none;">← 返回</button>
-    <div id="character-display"><h1>字</h1></div>
+    <div id="character-display"><h1 class="app-title">码上生花</h1></div>
     <div id="hint-display"></div>
-    <div id="input-area" style="display: none;"><input type="text" id="typing-input" placeholder="在此输入编码" autofocus></div>
+    <div id="input-area" style="display: none;">
+      <input type="text" id="typing-input" placeholder="在此输入编码" autofocus>
+    </div>
 
     <div class="setup-section">
       <div class="setup-row">
@@ -227,14 +286,19 @@
       <button id="start-practice-btn" class="btn-primary">开始练习</button>
     </div>
 
-    <div id="stats" style="margin-top: 20px; color: #666;">
+    <div id="stats" style="margin-top: 20px; color: var(--text-muted-color);">
       <p>总字数: <span id="total-chars">0</span> | 待练习: <span id="pending-chars">0</span></p>
     </div>
-    <div class="setup-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <div id="session-stats" style="display: none; margin-top: 15px; color: var(--text-muted-color);">
+      <p>正确: <span id="session-correct" style="color: var(--success-color);">0</span> | 错误: <span id="session-wrong" style="color: var(--danger-color);">0</span> | 正确率: <span id="session-accuracy">0%</span></p>
+    </div>
+    <div class="setup-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-light-color); width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button id="import-progress-btn" class="btn-secondary">导入进度</button>
         <button id="export-progress-btn" class="btn-secondary">导出进度</button>
         <input type="file" id="import-file-input" accept=".json" style="display: none;">
-        <button id="clear-progress-btn" style="grid-column: span 2;">清空进度</button>
+    </div>
+    <div style="margin-top: 10px; text-align: center;">
+        <button id="clear-progress-btn">清空进度</button>
     </div>
   </div>
 
@@ -259,6 +323,11 @@
       importProgressBtn: document.getElementById('import-progress-btn'),
       exportProgressBtn: document.getElementById('export-progress-btn'),
       importFileInput: document.getElementById('import-file-input'),
+      sessionStats: document.getElementById('session-stats'),
+      sessionCorrect: document.getElementById('session-correct'),
+      sessionWrong: document.getElementById('session-wrong'),
+      sessionAccuracy: document.getElementById('session-accuracy'),
+      themeToggle: document.getElementById('theme-toggle'),
     };
 
     const PREDEFINED_TEXTS = {
@@ -277,6 +346,8 @@
     let currentProfileId = 'feidan';
     let sessionMistakeQueue = [];
     let customDictName = '';
+    let sessionCorrectCount = 0;
+    let sessionWrongCount = 0;
 
     function getCharStat(char) {
         if (!currentProfile[char]) {
@@ -329,6 +400,13 @@
         return practiceSet[Math.floor(Math.random() * practiceSet.length)];
     }
 
+    function updateSessionStats() {
+        const total = sessionCorrectCount + sessionWrongCount;
+        DOM.sessionCorrect.textContent = sessionCorrectCount;
+        DOM.sessionWrong.textContent = sessionWrongCount;
+        DOM.sessionAccuracy.textContent = total > 0 ? Math.round(sessionCorrectCount / total * 100) + '%' : '0%';
+    }
+
     function handleInputComplete(isCorrect, userInput) {
         const stat = getCharStat(currentCharacter);
         const now = Date.now();
@@ -336,6 +414,8 @@
         
         if (isCorrect) {
             stat.successCount++;
+            sessionCorrectCount++;
+            updateSessionStats();
             // SM-2 style interval calculation
             if (stat.interval < 1) stat.interval = 1;
             else if (stat.interval === 1) stat.interval = 6;
@@ -346,6 +426,8 @@
         } else {
             stat.failCount++;
             stat.interval = 1;
+            sessionWrongCount++;
+            updateSessionStats();
             flashFeedback(false);
             
             // Add to session mistake queue for review
@@ -366,7 +448,7 @@
             DOM.hintDisplay.textContent = '';
             DOM.hintDisplay.classList.remove('status-error');
             nextCharacter();
-        }, isCorrect ? 100 : 1500);
+        }, isCorrect ? 100 : 800);
     }
     
     function showStatusMessage(msg, options = {}) {
@@ -494,9 +576,13 @@
         }
         
         sessionMistakeQueue = [];
+        sessionCorrectCount = 0;
+        sessionWrongCount = 0;
         
         // Hide setup, show practice (keep stats visible)
         document.querySelectorAll('.setup-section').forEach(el => el.style.display = 'none');
+        DOM.sessionStats.style.display = 'block';
+        updateSessionStats();
         DOM.inputArea.style.display = 'block';
         DOM.exitPracticeBtn.style.display = 'block';
         
@@ -507,6 +593,7 @@
     function nextCharacter() {
         currentCharacter = getNextChar();
         DOM.characterDisplay.textContent = currentCharacter;
+        DOM.characterDisplay.classList.remove('app-title');
         DOM.typingInput.value = '';
         DOM.typingInput.focus();
     }
@@ -517,9 +604,11 @@
         const gridSection = document.querySelector('.setup-section[style*="grid"]');
         if (gridSection) gridSection.style.display = 'grid';
         document.getElementById('stats').style.display = 'block';
+        DOM.sessionStats.style.display = 'none';
         DOM.inputArea.style.display = 'none';
         DOM.exitPracticeBtn.style.display = 'none';
-        DOM.characterDisplay.textContent = '字';
+        DOM.characterDisplay.textContent = '码上生花';
+        DOM.characterDisplay.classList.add('app-title');
         DOM.hintDisplay.textContent = '';
         updateStats();
     }
@@ -613,7 +702,7 @@
     });
 
     function parseAndMergeDict(contents){const lines=contents.split("\n");let dataSection=!1;for(const line of lines){if("---"===line.trim()){dataSection=!0;continue}if(!dataSection)continue;const trimmedLine=line.trim();if(!trimmedLine||trimmedLine.startsWith("#"))continue;const parts=trimmedLine.split("\t");if(parts.length<2)continue;const char=parts[0],code=parts[1];if(char&&code&&1===char.trim().length){dictionary[char]||(dictionary[char]=[]),dictionary[char].includes(code)||dictionary[char].push(code)}}}
-    function flashFeedback(isCorrect){DOM.typingInput.style.borderColor=isCorrect?"#28a745":"var(--danger-color)",isCorrect||DOM.typingInput.classList.add("shake"),setTimeout(()=>{DOM.typingInput.style.borderColor="var(--medium-gray-color)",isCorrect||DOM.typingInput.classList.remove("shake")},500)}
+    function flashFeedback(isCorrect){DOM.typingInput.style.borderColor=isCorrect?"var(--success-color)":"var(--danger-color)",isCorrect||DOM.typingInput.classList.add("shake"),setTimeout(()=>{DOM.typingInput.style.borderColor="var(--medium-gray-color)",isCorrect||DOM.typingInput.classList.remove("shake")},500)}
     
     DOM.typingInput.addEventListener("input", (e) => {
         if (!currentCharacter) return;
@@ -684,6 +773,35 @@
     DOM.importProgressBtn.addEventListener('click', () => DOM.importFileInput.click());
     DOM.importFileInput.addEventListener('change', importProgress);
     DOM.uploadDictBtn.addEventListener('click', () => DOM.dictUpload.click());
+    
+    // Theme toggle
+    function toggleTheme() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (isDark) {
+            document.documentElement.removeAttribute('data-theme');
+            DOM.themeToggle.textContent = '☀️';
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            DOM.themeToggle.textContent = '🌙';
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+    DOM.themeToggle.addEventListener('click', toggleTheme);
+    
+    // Initialize theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        DOM.themeToggle.textContent = '🌙';
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        // Esc to exit practice
+        if (e.key === 'Escape' && DOM.inputArea.style.display !== 'none') {
+            exitPractice();
+        }
+    });
     
     function initializeApp() {
         const lastDict = localStorage.getItem('lastDictSelection') || 'feidan';
