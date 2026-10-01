@@ -11,8 +11,11 @@ CodeGlyph (码上生花) - 中文字符编码练习工具，基于间隔重复�
 
 ```
 code-glyph/
-├── index.html    # 完整应用 (HTML+CSS+JS, ~720行)
-└── GEMINI.md     # 项目文档 (详细功能说明)
+├── index.html               # 完整应用 (HTML+CSS+JS)
+├── README.md                # 使用说明
+└── docs/
+    ├── implementation.md    # 码表与调度细节
+    └── screenshots/         # README 页面截图
 ```
 
 ## WHERE TO LOOK
