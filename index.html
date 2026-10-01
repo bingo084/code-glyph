@@ -254,97 +254,143 @@
         #theme-toggle .icon-moon { display: none; }
         [data-theme="dark"] #theme-toggle .icon-sun { display: none; }
         [data-theme="dark"] #theme-toggle .icon-moon { display: block; }
+
+        [hidden] { display: none !important; }
+        .container { box-sizing: border-box; max-width: 480px; margin-bottom: 5vh; }
+        #character-display { margin-top: 28px; }
+        input[type="number"] { box-sizing: border-box; width: 90px; padding: 8px 10px;
+            border: 1px solid var(--medium-gray-color); border-radius: var(--border-radius);
+            background: var(--light-gray-color); color: var(--text-color); font-size: 0.95rem; }
+        .practice-actions, .data-actions { display: flex; gap: 10px; width: 100%; }
+        .practice-actions { margin-top: 10px; }
+        .practice-actions .btn-secondary { width: 35%; }
+        .muted { color: var(--text-muted-color); font-size: 0.85rem; line-height: 1.6; }
+        #status-display { margin-top: 15px; font-size: 0.9rem; line-height: 1.6; }
+        #feedback-display { min-height: 1.5em; font-size: 0.9rem; margin-top: 10px; }
+        #session-stats { font-size: 0.85rem; margin-top: 15px; line-height: 1.7; }
+        #stats { line-height: 1.7; font-size: 0.85rem; color: var(--text-muted-color); }
+        details { text-align: left; width: 100%; }
+        summary { cursor: pointer; }
+        details p { margin: 8px 0; }
+        .setup-row select { min-width: 0; }
+        @media (max-width: 420px) {
+            .container { padding: 20px 16px; width: 94%; }
+            .setup-row { gap: 8px; }
+            .data-actions { flex-wrap: wrap; }
+            .data-actions button { flex: 1; }
+        }
     </style>
+
 </head>
 <body>
-  <div class="container">
+  <main class="container">
     <button id="theme-toggle" title="切换深色模式">
       <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-    <button id="exit-practice-btn" style="display: none;">← 返回</button>
-    <div id="character-display"><h1 class="app-title">码上生花</h1></div>
-    <div id="hint-display"></div>
-    <div id="input-area" style="display: none;">
-      <input type="text" id="typing-input" placeholder="在此输入编码" autofocus>
+    <button id="exit-practice-btn" hidden>← 返回</button>
+    <h1 id="character-display" class="app-title">码上生花</h1>
+    <div id="hint-display" aria-live="polite"></div>
+    <div id="input-area" hidden>
+      <input type="text" id="typing-input" placeholder="输入编码，停键后自动判题" aria-label="字符编码"
+             autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text">
+      <div id="feedback-display" role="status"></div>
+      <div class="practice-actions">
+        <button id="hint-btn" class="btn-secondary">看提示 ↓</button>
+        <button id="submit-btn" class="btn-primary">提交</button>
+      </div>
+      <p id="session-guide" class="muted"></p>
     </div>
-
-    <div class="setup-section">
+    <section class="setup-section">
       <div class="setup-row">
-        <label for="dict-select">码表:</label>
+        <label for="dict-select">码表</label>
         <select id="dict-select">
+          <option value="tiger_sentence">虎整句 · 组句码</option>
           <option value="feidan">飞单</option>
         </select>
-        <button id="upload-dict-btn" class="icon-btn" title="上传自定义码表">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </button>
-        <input type="file" id="dict-upload" accept=".yaml,.txt" multiple>
+        <button id="upload-dict-btn" class="icon-btn" title="导入 YAML 或 TXT 码表" aria-label="导入码表">＋</button>
+        <input type="file" id="dict-upload" accept=".yaml,.yml,.txt" multiple>
       </div>
+      <div id="dict-description" class="muted"></div>
+      <button id="remove-dict-btn" class="btn-secondary" hidden>移除上传码表（保留进度）</button>
       <div class="setup-row">
-        <label for="text-select">文本:</label>
+        <label for="text-select">范围</label>
         <select id="text-select">
-            <option value="custom">自定义粘贴</option>
-            <option value="top500">常用前500字</option>
-            <option value="mid500">常用中500字</option>
-            <option value="last500">常用后500字</option>
-            <option value="top1000">常用前1000字</option>
-            <option value="top1500">常用前1500字</option>
+          <option value="top500">常用前 500 字</option>
+          <option value="mid500">常用中 500 字</option>
+          <option value="last500">常用后 500 字</option>
+          <option value="top1000">常用前 1000 字</option>
+          <option value="top1500">常用前 1500 字</option>
+          <option value="custom">自定义粘贴</option>
         </select>
       </div>
-      <div id="custom-text-controls" style="width: 100%;">
-        <textarea id="practice-text-input" placeholder="请在此处粘贴或选择预设文本..."></textarea>
+      <div id="custom-text-controls" hidden>
+        <label for="practice-text-input" class="muted">粘贴想练的字或文章；重复字只收录一次</label>
+        <textarea id="practice-text-input" rows="4" placeholder="粘贴想练的字…"></textarea>
       </div>
-      <button id="start-practice-btn" class="btn-primary">开始练习</button>
-    </div>
-
-    <div id="stats" style="margin-top: 20px; color: var(--text-muted-color);">
-      <p>总字数: <span id="total-chars">0</span> | 待练习: <span id="pending-chars">0</span></p>
-    </div>
-    <div id="session-stats" style="display: none; margin-top: 15px; color: var(--text-muted-color);">
-      <p>正确: <span id="session-correct" style="color: var(--success-color);">0</span> | 错误: <span id="session-wrong" style="color: var(--danger-color);">0</span> | 正确率: <span id="session-accuracy">0%</span></p>
-    </div>
-    <div class="setup-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-light-color); width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <div class="setup-row">
+        <label for="code-length">码长</label>
+        <select id="code-length">
+          <option value="0">混合练习</option>
+          <option value="1">只练一码</option>
+          <option value="2">只练二码</option>
+          <option value="3">只练三码</option>
+          <option value="4">只练四码</option>
+        </select>
+      </div>
+      <div id="length-stats" class="muted"></div>
+      <div class="setup-row">
+        <label for="practice-mode">安排</label>
+        <select id="practice-mode">
+          <option value="continuous">连续练习 · 累了再停</option>
+          <option value="review">到期复习 · 每日新字额度</option>
+        </select>
+      </div>
+      <div class="setup-row">
+        <label for="input-mode">判题</label>
+        <select id="input-mode">
+          <option value="auto">停键后自动判题、换字</option>
+          <option value="manual">手动确认</option>
+        </select>
+      </div>
+      <div id="auto-delay-row" class="setup-row">
+        <label for="auto-delay">停键等待</label>
+        <select id="auto-delay">
+          <option value="150">150 毫秒</option>
+          <option value="250" selected>250 毫秒</option>
+          <option value="400">400 毫秒</option>
+          <option value="600">600 毫秒</option>
+        </select>
+      </div>
+      <div id="new-limit-row" class="setup-row" hidden>
+        <label for="new-limit">每日新字</label>
+        <input type="number" id="new-limit" value="20" min="0" max="100" step="1">
+        <span class="muted">设为 0 只复习</span>
+      </div>
+      <button id="start-practice-btn" class="btn-primary">开始连续练习</button>
+      <details class="muted">
+        <summary>怎么练</summary>
+        <p>默认连续练习，不限题数，累了按 Esc 或返回。混合练习按字随机抽取，不预先安排码长或固定比例；错字、犹豫字和到期字更常出现。</p>
+        <p>先切到英文输入。到达目标码长或出现错码后，停键等待一小段时间再自动判题；多按键会重新计时。正确后快速换字，错误答案停留 1.2 秒后继续。↓ 或 F1 看提示，空格或 Enter 也可立即提交或跳过反馈。</p>
+        <p>仍可能正确的短前缀会继续等待输入。自动换字后的按键属于下一题；如需更长时间检测打过，可调大停键等待，或选择手动确认。</p>
+        <p>开始输入前回忆不超过 2 秒，输入到提交之间每次停顿不超过 1.2 秒，且没有改错或看提示，记为流畅。正确的短前缀处停顿超过 1.2 秒会立即记录犹豫，可以继续打，退出也保留；补完不重复计数。打错、打过、打少、纠正过或看过提示，都安排重练。</p>
+        <p>错字隔 1 个字、犹豫字隔 2 个字后优先重练；流畅通过后在 1 分钟、10 分钟后复习，后续间隔按记忆状态计算。到期字优先出现。到期复习模式完成后结束；连续模式不限题数，码长不按固定节奏排列。</p>
+        <p>虎整句练主要组句码，一码字在连打时也用组句码（如“的”练 ue）。内置常用字顺序来自本地虎整字频表。其他码表练最短码。</p>
+      </details>
+    </section>
+    <p id="stats"></p>
+    <div id="session-stats" hidden></div>
+    <div id="status-display" role="status"></div>
+    <section class="setup-section">
+      <div class="data-actions">
         <button id="import-progress-btn" class="btn-secondary">导入进度</button>
-        <button id="export-progress-btn" class="btn-secondary">导出进度</button>
-        <input type="file" id="import-file-input" accept=".json" style="display: none;">
-    </div>
-    <div style="margin-top: 10px; text-align: center;">
-        <button id="clear-progress-btn">清空进度</button>
-    </div>
-  </div>
-
+        <button id="export-progress-btn" class="btn-secondary">导出备份</button>
+      </div>
+      <input type="file" id="import-file-input" accept=".json" hidden>
+      <button id="clear-progress-btn">清空当前码表进度</button>
+    </section>
+  </main>
   <script>
-    const DOM = {
-      characterDisplay: document.getElementById('character-display').querySelector('h1'),
-      hintDisplay: document.getElementById('hint-display'),
-      typingInput: document.getElementById('typing-input'),
-      dictSelect: document.getElementById('dict-select'),
-      textSelect: document.getElementById('text-select'),
-      dictUpload: document.getElementById('dict-upload'),
-      uploadDictBtn: document.getElementById('upload-dict-btn'),
-      practiceTextInput: document.getElementById('practice-text-input'),
-      startPracticeBtn: document.getElementById('start-practice-btn'),
-      totalCharsSpan: document.getElementById('total-chars'),
-      pendingCharsSpan: document.getElementById('pending-chars'),
-      customTextControls: document.getElementById('custom-text-controls'),
-      setupSection: document.querySelector('.setup-section'),
-      inputArea: document.getElementById('input-area'),
-      clearProgressBtn: document.getElementById('clear-progress-btn'),
-      exitPracticeBtn: document.getElementById('exit-practice-btn'),
-      importProgressBtn: document.getElementById('import-progress-btn'),
-      exportProgressBtn: document.getElementById('export-progress-btn'),
-      importFileInput: document.getElementById('import-file-input'),
-      sessionStats: document.getElementById('session-stats'),
-      sessionCorrect: document.getElementById('session-correct'),
-      sessionWrong: document.getElementById('session-wrong'),
-      sessionAccuracy: document.getElementById('session-accuracy'),
-      themeToggle: document.getElementById('theme-toggle'),
-    };
-
     const PREDEFINED_TEXTS = {
       top500: '的一是了不在有个人这上中大为来我到出要以时和地们得可下对生也子就过能他会多发说而于自之用年行家方后作成开面事好小心前所道法如进着同经分定都然与本还其当起动已两点从问里主实天高去现长此三将无国全文理明日些看只公等十意正外想间把情者没重相那向知因样学应又手但信关使种见力名二处门并口么先位头回话很再由身入内第平被给次别几月真立新通少机打水果最部何安接报声才体今合性西你放表目加常做己老四件解路更走比总金管光工结提任东原便美及教难世至气神山数利书代直色场变记张必受交非服化求风度太万各算边王什快许连五活思该步海指物则女或完马强言条特命感清带认保望转传儿制干计民白住字它义车像反象题却流且即深近形取往系量论告息让决未花收满每华业南觉电空眼听远师元请容她军士百办语期北林识半夫客战院城候单音台死视领失司亲始极双令改功程爱德复切随李员离轻观青足落叫根怎持精送众影八首包准兴红达早尽故房引火站似找备调断设格消拉照布友整术石展紧据终周式举飞片虽易运笑云建谈界务写钱商乐推注越千微若约英集示呢待坐议乎留称品志黑存六造低江念产刻节尔吃势依图共曾响底装具喜严九况跟罗须显热病证刚治绝群市阳确究久除闻答段官政类黄武七支费父统',
       mid500: '府查般斯倒突号树拿克初广奇愿欢希母香破谁致线急古既句京甚仍晚争游龙余护另器细木权星哪苦孩试朝阿队居害独讲错局男差参社换选止际假汉够诉资密案史较环投静宝专修室区料帮衣竟模脸善兵考规联团冷玉施派纪采历顾春责夜画惊银负续吗简章左块索酒值态按陈河巴冲阵境助角户乱呼灵脚继楼景怕停铁异谢否伤蘭置医良承福科属围需退基右速适药怀击买素背岁土忙充排价质遇端列印贵疑露哥杀标招血礼弟亮齐穿脑委州某顺省讨尚维板散项状追笔副层沙养读习永草胡济执察归富座雨堂威忽苏船罪敢妇村著食导免温莫掌激慢托胜险寻守波雷沉秀职验靠楚略族藏丽渐刘仅肯担扬盘唐钟级毛营坚松皮供店饭范哈赶吧雪斗效临农味恶烟园烈配杂短卫跳孙曲封抓移顿律卖艺旧朋救防脱翻划迎痛校窗宣乡杨叶警限湖软掉财词压挥超屋秋跑忘馆暗班党宗坏技困登姐预耳席梦朱组旁份禁套亚益探康增诗戏伯晓含劳恩顶君庄谓付田毕纸研虚怪宁替犯灯优您姓例丝盖误架幸隐股毒娘占智佛床米凡介征彩演射祖欲束获舞圣伙梅普借私源镇睡缓升纳织歌宫概野醒夏互积街牌休摇洋败监骨批兄刀网率庭熟创访硬仁菜丁绿牛避阴拍雄秘缺卷姑尼油恐玩释遍握球降虑荣策肉妈迷检伸欧攻练育危厅啊睛摆茶勇判材抱亦妻吸喝趣嘴逐操午吉浪轮默毫冰',
@@ -355,507 +401,1044 @@
 
     const PREDEFINED_DICTS = {feidan: ['https://raw.githubusercontent.com/sbsrf/sbsrf/refs/heads/main/sbxlm/sbfd.dict.yaml', 'https://raw.githubusercontent.com/sbsrf/sbsrf/refs/heads/main/sbxlm/sbf.dict.yaml']};
 
-    let dictionary = {}, practiceSet = [];
-    let currentCharacter = null;
-    let currentProfile = {};
-    let currentProfileId = 'feidan';
-    let sessionMistakeQueue = [];
-    let customDictName = '';
-    let sessionCorrectCount = 0;
-    let sessionWrongCount = 0;
+    // Tiger Sentence snapshot: 2026-10-01; canonical >=2-key spelling, rank-1 preferred.
+    // Each selected code survives the high-frequency filter; whitelist only permits additional alternatives.
+    const TIGER_SOURCE_HASHES = {"tiger_sentence.codes.txt": "1d3e9b0ce0e4a603be3f220c71acecad846f020e87a52723ecb3814f6b53ac0e", "tiger_sentence.char_ranks.txt": "bd64e4bf333b2096a9a61fd5ece868e37912057bd1a812d75b2d5ccb4c994dcf", "tiger_sentence.full_code_whitelist.txt": "05d257457898146262f7dbf264103c70a8cf2ee92d188b770ad13232b293f566", "lua/tiger_sentence.lua": "6a7756654a88e7cab919da79a80092a3c96a97ec264463c95ea201f68c4f9db6"};
+    const TIGER_PRIMARY_CODES = "的\tue\n一\tfi\n是\tot\n不\tcb\n了\trl\n在\tng\n我\ttu\n人\tjr\n他\tje\n这\tvu\n有\tnv\n个\tjg\n大\tmd\n上\tyf\n中\tdg\n来\tah\n地\tge\n和\txd\n说\tsh\n为\tis\n们\tja\n到\typ\n你\tjx\n就\tgy\n也\tey\n以\tvj\n国\trn\n那\tau\n要\tvb\n时\tok\n出\tsm\n着\tgq\n可\tzk\n道\tho\n之\tri\n对\trk\n会\tjb\n自\toi\n而\tle\n得\two\n下\tfy\n能\tkv\n过\tku\n生\tls\n子\thi\n于\tfn\n年\tev\n后\txf\n发\tsr\n都\tqo\n里\tdl\n没\tkr\n还\tcu\n所\tmt\n去\tgk\n看\tuq\n事\tfd\n如\tbd\n用\tty\n小\tyx\n作\tjw\n多\tll\n行\tpx\n只\tdh\n好\tbh\n成\tna\n家\twj\n天\tfm\n她\tbe\n方\tlf\n然\tvm\n当\tyb\n心\thx\n起\tpv\n种\txdg\n想\teqh\n经\tir\n现\tne\n但\tjo\n法\tkg\n无\tdu\n同\tmf\n么\ttk\n进\tqu\n学\tkw\n面\tbm\n其\tzh\n前\thv\n已\tvi\n主\tin\n从\tjj\n动\tbs\n分\thp\n把\tumb\n开\tfl\n军\twyc\n又\try\n两\tml\n本\tef\n因\trm\n定\twt\n部\tid\n与\tfa\n将\talk\n日\tor\n长\tpc\n理\tndl\n三\tts\n些\tsvm\n实\tww\n样\tegy\n十\tns\n意\txh\n知\tod\n此\tsv\n第\trt\n力\tsl\n很\twi\n正\tfsi\n高\tgg\n手\tus\n什\tjns\n身\tzs\n被\ttr\n它\twv\n明\tov\n老\tql\n者\tqor\n公\thk\n见\tej\n机\teo\n向\ttm\n问\tadk\n最\toq\n使\tjf\n全\tjn\n点\tyd\n情\tha\n外\tlyb\n民\tdm\n并\thl\n战\tydp\n关\thmd\n工\tug\n回\trd\n等\trg\n相\teqm\n二\tme\n重\tldl\n由\tdy\n头\twm\n声\tgc\n性\thls\n应\txk\n间\tao\n话\tsa\n文\tvw\n给\tij\n美\tgm\n业\tcy\n物\tqne\n真\tnq\n体\tjef\n或\tpdf\n政\tfsh\n几\toj\n内\tmj\n利\txp\n打\tua\n走\tpz\n新\tie\n位\tji\n西\tvx\n再\tfmg\n产\tixc\n加\tsd\n月\tvy\n却\tgkz\n先\tqp\n制\tqrp\n特\tqg\n果\tqem\n东\tryx\n神\tfog\n儿\tpe\n才\tnt\n门\tam\n太\tmi\n合\tjdk\n信\tjs\n表\tati\n原\txu\n女\tbn\n更\tfo\n己\tvjj\n名\tld\n立\til\n比\tvv\n代\tjp\n四\tys\n斯\tzht\n任\tjt\n次\twe\n世\tla\n便\tjfo\n听\tdtj\n提\tuo\n做\tjc\n海\tkek\n水\tks\n教\tqhh\n眼\tqi\n化\tjvb\n通\tkt\n感\tnf\n王\tnw\n各\tsg\n口\tdk\n气\tvq\n别\tds\n少\tyt\n处\thy\n平\teh\n常\tsrj\n解\txt\n何\tjz\n接\tuib\n目\tqm\n反\txr\n变\tzc\n笑\trtm\n总\thd\n入\tju\n认\tsj\n条\the\n安\twb\n金\tzj\n及\tcj\n度\txlr\n让\tsyf\n山\tvs\n马\tnm\n受\tywr\n活\tka\n结\tigd\n数\tpb\n直\tnqf\n必\tht\n白\tub\n指\tuv\n张\tbp\n报\tuz\n论\tsjl\n员\tdo\n义\tib\n放\tlh\n电\toa\n至\tyi\n五\twu\n系\ttis\n难\trui\n命\tjdz\n建\tbu\n尔\txyx\n件\tjq\n死\tgv\n保\tjde\n完\twmp\n许\tse\n题\totw\n场\tga\n空\teu\n计\tsn\n怎\twh\n光\tmg\n管\trwk\n非\trf\n德\twn\n强\tbdc\n量\tofd\n决\twnj\n形\tfle\n像\tjwx\n期\tzhv\n资\tweo\n队\ttjr\n清\tkav\n务\ths\n嗯\tdr\n统\tibp\n书\taa\n市\tzr\n司\tafd\n师\tpf\n住\tjin\n即\tiz\n克\tcp\n带\tlw\n飞\tcf\n南\tnmg\n区\tnb\n李\tehi\n则\top\n觉\tkwe\n交\tab\n社\tfg\n今\tjae\n基\tzhg\n北\tav\n展\tcl\n传\tjm\n连\tyu\n叫\tdi\n治\tkk\n路\tpsg\n万\tfp\n告\tqd\n科\txj\n呢\tdcv\n思\tqh\n达\tmu\n记\tsvj\n转\tym\n望\tfv\n边\tsu\n快\thn\n风\tobi\n色\txm\n该\tsk\n界\tqjp\n象\twx\n权\ter\n拉\tui\n设\tsrs\n且\tfq\n取\tqr\n干\teg\n收\tih\n步\tssi\n领\tjkw\n林\tee\n根\tei\n往\twin\n亲\tiem\n极\tec\n求\tfk\n未\taw\n每\tek\n程\txdn\n式\tpug\n兵\tthb\n据\tuc\n类\tpmd\n言\tsy\n规\thej\n吧\tdmb\n品\tddd\n确\tmx\n观\trej\n城\tgna\n虽\tdc\n失\tth\n格\tes\n远\tmp\n办\tshb\n元\tmpe\n运\tbuc\n令\tjks\n共\tlhb\n似\tjvj\n准\twui\n请\tsav\n武\tfps\n士\tgs\n改\tvh\n英\tlm\n术\teid\n车\tyc\n石\tms\n深\tkwh\n联\tqhm\n争\txb\n吗\tdn\n院\ttw\n轻\tyr\n火\tch\n罗\tyl\n百\tfu\n夫\thf\n离\tzb\n花\tlj\n近\ttuc\n切\trpd\n识\tsdh\n造\tqdu\n组\tif\n流\tkb\n算\trql\n布\tnrj\n导\tvk\n早\ton\n找\tup\n候\tjgn\n满\tkl\n服\tvz\n官\twk\n整\txhf\n爱\tyw\n字\twhi\n持\tugk\n跟\tpig\n突\temq\n影\tog\n消\tkyv\n随\ttn\n吃\tde\n商\tim\n证\tsf\n单\thq\n议\tsib\n越\tpn\n存\tngh\n击\tum\n精\tpa\n济\tkqq\n始\tbkd\n台\tkd\n黑\tph\n调\tsmg\n需\ttle\n支\tci\n杀\tbem\n团\trnt\n功\tusl\n具\tqhb\n华\tjvn\n脸\tvjk\n府\txjk\n集\tuem\n周\tmgd\n青\tavy\n红\tiug\n双\trr\n九\tkj\n八\thb\n片\tap\n半\thu\n容\twhg\n曾\thr\n啊\tdt\n阿\ttz\n落\tlk\n显\tocy\n除\ttjx\n尽\tciw\n党\tspe\n照\topd\n众\tjjj\n备\thqt\n复\teoh\n陈\ttry\n断\tpat\n价\tjjp\n约\tini\n写\twf\n包\tnvs\n级\ticj\n另\tdsl\n病\tafm\n质\txno\n称\txxy\n倒\tjy\n江\tkug\n绝\tixm\n敌\tahp\n黄\tnh\n技\tuci\n六\tal\n朝\tno\n派\tkx\n线\tifp\n站\tiyd\n究\tekj\n装\tagti\n亚\tfcy\n首\thoi\n刚\tmbp\n示\tfs\n视\tfe\n况\twd\n增\tghr\n谈\tsc\n惊\thgy\n古\tcg\n史\tdb\n谁\tsui\n引\tbgs\n须\tew\n七\trq\n息\tohx\n研\tmfl\n际\ttfs\n器\tdd\n易\tone\n留\tbq\n推\tuu\n坐\tjjg\n房\tmlf\n广\txg\n注\tki\n查\teof\n语\tsw\n念\tjah\n若\tlnd\n奇\tmzk\n紧\tpr\n企\tjsi\n希\tbnr\n委\txbn\n响\tdtm\n号\tdf\n参\tkme\n势\tukis\n历\txsl\n剑\tjkf\n攻\tuh\n冷\twjk\n投\turs\n哪\tdau\n农\twti\n专\tma\n图\trhw\n考\tqf\n选\tqpu\n终\tihw\n微\twvf\n皇\tun\n土\tgt\n局\tcad\n星\tol\n足\tpu\n刘\tvp\n甚\tzha\n严\tfcx\n医\tnos\n男\tqsl\n营\tlwd\n乎\tthn\n仅\tjry\n父\thbi\n拿\tjdu\n孩\thkh\n答\trjd\n费\tto\n标\tefs\n依\tjti\n兴\tkhb\n低\tjbi\n千\tlq\n仍\tjv\n急\txbh\n护\tumh\n竟\txpe\n某\tze\n较\tyab\n防\ttlf\n列\tgp\n讲\tsq\n破\tmr\n客\tws\n施\tlee\n故\tchp\n血\ttam\n节\tlz\n云\tby\n龙\ttl\n钱\tzf\n苏\tlsh\n母\tkm\n伤\tjes\n举\tkhu\n族\tleo\n按\tuwb\n维\tiu\n修\tjgh\n帝\tiwr\n河\tkz\n威\tnfb\n巴\tmb\n划\tpp\n致\tyh\n案\twbe\n革\ttg\n底\txbi\n送\thm\n冲\twdg\n音\txy\n态\tmih\n够\tgl\n段\tuf\n构\tenk\n群\tbt\n船\tiod\n责\taob\n苦\tlcg\n章\txns\n律\twbv\n愿\txuy\n围\trgw\n京\tgyx\n衣\tti\n喜\thdk\n独\tmc\n效\tabh\n斗\tjd\n细\tiq\n怕\thub\n志\tgh\n米\tpm\n晚\towp\n热\tuk\n项\tuw\n料\tpj\n例\tjgp\n灵\tbch\n密\twht\n害\twadk\n供\tjlh\n属\tct\n验\tnj\n境\tgx\n毛\tvmm\n般\tirs\n居\tccg\n继\tip\n错\tzl\n沉\tkwo\n采\tye\n既\tidu\n察\twhf\n否\tcd\n批\tuvv\n脑\tvzb\n夜\tzjv\n股\tvr\n速\txuc\n纪\tivj\n续\tina\n假\tjcm\n帮\tat\n乐\tbyx\n陆\ttum\n型\tflpg\n退\tiuc\n友\tnr\n铁\tzt\n汉\tkry\n暗\tox\n状\tamq\n左\tnu\n句\tgj\n雷\ttqt\n网\tmbb\n率\tzi\n值\tjnq\n普\thco\n承\tak\n停\tjga\n试\tsp\n弹\tbhq\n止\tsi\n职\tqdh\n药\tli\n久\txi\n印\tbfz\n卫\tzfi\n助\tfsl\n掌\tsus\n织\tidh\n阳\ttor\n待\twgk\n初\ttpd\n追\ttku\n木\tem\n哈\tdj\n您\tjxy\n预\tiw\n刻\tkp\n创\tjzp\n诉\tst\n简\tra\n射\tzkc\n限\ttig\n球\tnfk\n差\tgu\n树\terk\n校\teab\n兰\thts\n怪\thrg\n阵\ttyc\n异\tvl\n宗\twfs\n波\tkrp\n育\tbvy\n激\tkul\n担\tuof\n顿\tfsw\n游\tkle\n充\tbpe\n银\tzig\n适\tauc\n省\tytq\n胡\tcvy\n食\tqs\n警\tlg\n素\tais\n尼\tcvb\n排\tur\n负\txo\n背\tavv\n忽\tneh\n酒\tky\n穿\tel\n福\tff\n弟\thtf\n怀\thc\n欢\tre\n环\tnc\n招\tupd\n模\telo\n胜\tvls\n痛\takt\n习\tzx\n险\ttjkf\n财\tont\n益\tkam\n宝\twni\n脚\tvg\n疑\tvo\n乱\taae\n赶\tpeg\n坚\tprg\n获\tlmm\n劳\tlws\n挥\tuwy\n敢\taqh\n置\tyn\n右\tnd\n压\txgi\n香\txor\n层\tcby\n略\tqsg\n静\tavx\n村\tekc\n范\tlkz\n源\tkxu\n副\tfdq\n州\too\n纳\timj\n岁\tvlx\n罪\tyrf\n余\tjxh\n闻\taq\n占\tydk\n玉\tni\n哥\tzz\n杨\tea\n忙\thfw\n兄\tdp\n守\twkc\n跑\tpnv\n述\teiu\n座\txjj\n田\tqt\n摇\tuyaf\n超\tppd\n演\tkwfh\n皮\trp\n喝\tdon\n买\tawm\n佛\tjtf\n室\twyi\n角\txty\n卡\tyfy\n封\tggk\n策\tremk\n块\tgn\n富\twfd\n判\thup\n配\tyv\n姑\tbc\n优\tjoy\n征\twfsi\n善\tghd\n刀\tpd\n娘\tbi\n降\tthv\n恶\tfchx\n宣\twfo\n慢\thoyr\n积\txdh\n草\tlo\n恐\tuoih\n妈\tbnm\n读\tsnam\n靠\tqdr\n阶\ttjp\n楚\teet\n姐\tbf\n爸\thbm\n执\tuki\n呼\tdth\n协\tnsh\n洲\tkoo\n巨\tnn\n免\twp\n检\tejk\n养\tgi\n顾\txz\n救\tfki\n份\tjh\n控\tueu\n抗\tuzo\n著\tlqo\n赵\tpbi\n肯\tsvy\n露\ttps\n换\tux\n登\thz\n伊\tjbt\n犯\tmz\n尚\tss\n莫\tlom\n危\txx\n审\twog\n掉\tuy\n亦\tzch\n沙\tkyt\n散\tlv\n欧\tnbe\n唐\txbd\n枪\tejz\n宫\twdd\n魔\tza\n耳\tqe\n屋\tcyi\n永\tik\n孙\thyx\n临\tpro\n圣\trgt\n叶\tdns\n毫\tgvm\n宋\twem\n谢\tsz\n讨\tskc\n温\tkoa\n嘴\tdsv\n航\tizo\n毒\takm\n呀\tdly\n野\tdiv\n逃\tpw\n托\tutr\n伯\tjub\n索\tnwi\n岛\txv\n贵\tco\n顺\tow\n楼\tep\n遇\tqv\n良\tii\n朋\tvvy\n坏\tgcb\n亮\tgo\n户\tmh\n景\togy\n烈\tgpc\n闪\taj\n礼\tfae\n艺\tlai\n互\tfb\n丝\tiis\n秘\txht\n渐\tkytj\n架\tsde\n鱼\twvv\n升\ttlc\n抓\tuya\n监\tpra\n君\tbtd\n短\toz\n梦\teel\n隐\ttx\n困\trem\n税\txhd\n洋\tkgy\n鬼\tag\n炮\tcnv\n舰\tiej\n付\tjk\n诸\tsqo\n货\tjvo\n松\tehk\n归\tpbj\n败\toh\n幸\tggy\n概\teidu\n寻\tbkc\n评\tseh\n吸\tdcj\n恩\trmh\n介\tjpd\n朱\tta\n探\tuwh\n县\tfks\n脱\tvhd\n移\txll\n缺\tan\n画\tfqmk\n误\tsdf\n释\ttpr\n旁\tiwl\n跳\tppw\n藏\tlnq\n春\taio\n睡\tqll\n吉\tgdk\n端\tivl\n味\tda\n杂\tke\n翻\ttp\n雪\ttb\n遗\tcou\n款\tgf\n刺\temp\n附\ttjk\n爷\thbz\n核\tekh\n央\tmm\n减\twnf\n阴\ttvy\n编\timi\n版\tax\n智\todo\n齐\tqq\n雨\ttv\n徐\twjx\n鲁\twor\n仙\tjvs\n湖\tkcv\n钟\tzdg\n蒙\tlwf\n丽\tfvv\n班\tnp\n咱\tdoi\n康\txbk\n损\tudo\n震\ttfc\n借\tjlo\n固\trc\n诗\tsgk\n镇\tznq\n吴\tdfm\n域\tgpd\n均\tgnw\n秦\taix\n妇\tbb\n鲜\twgy\n序\txiv\n烟\tcr\n洞\tkmf\n猛\tmha\n测\tko\n练\tiry\n旧\tgor\n堂\tsgt\n笔\trv\n饭\tqx\n顶\tawy\n灭\tfch\n庄\txgt\n括\tuas\n怒\tbrh\n补\ttyb\n逐\tjuc\n毕\tvvns\n席\txlrj\n禁\teef\n剧\tccp\n乡\tixx\n湾\tkzc\n卖\tnaw\n牛\tqn\n避\tcdnu\n欲\theq\n弄\tnl\n忍\tpih\n旅\tlet\n暴\tolh\n虚\tzcy\n额\twsw\n含\tjad\n忘\tfh\n抱\tunv\n油\tkdy\n肉\tmjj\n输\tyjv\n洛\tksg\n祖\tffq\n缓\tiyf\n迎\tbz\n虎\tzhh\n票\tvf\n销\tzyv\n婚\tbbo\n乃\tvn\n板\texr\n冰\twks\n伸\tjog\n录\tbk\n遍\tmiu\n虑\tzhx\n宁\twad\n臣\tqc\n玩\tnmp\n熟\tghk\n谷\thg\n予\tiv\n谋\tsze\n炸\tcw\n督\tyfyq\n奥\ttmpm\n狂\tmnw\n亡\tfw\n港\tklhv\n庭\txtg\n博\tnnk\n材\tent\n俄\tjtu\n韩\tnon\n混\tkov\n词\tsaf\n盘\tia\n尊\thyk\n寒\twq\n遭\tfyou\n训\tso\n拍\tuub\n麻\tzm\n荣\tlwe\n卷\thh\n夏\tfoh\n谓\tsqv\n凡\toid\n私\txks\n厂\txc\n丁\tad\n骨\tfgg\n牙\tly\n休\tjem\n迫\tuuc\n授\tuyw\n替\thho\n拥\tut\n摆\tuyg\n默\tpmq\n勒\ttsl\n泽\tkru\n骑\tnmz\n疗\tar\n睛\tqa\n店\txyd\n载\tnpy\n诺\tsln\n健\tjbu\n扬\tuaes\n纸\tibs\n透\txvu\n床\txe\n唯\tdui\n岸\tvxe\n迅\tanu\n尤\toy\n稳\txxb\n园\trmp\n徒\twpz\n伦\tjjl\n坦\tgof\n择\turu\n蓝\tlp\n握\tucy\n抵\tubi\n姓\tbls\n郑\thmt\n弱\tbw\n软\tyeq\n绿\tibk\n叹\tdry\n轮\tyj\n束\txs\n盖\tgam\n丈\tfbi\n篇\trmi\n午\ten\n窗\tet\n歌\tzze\n雄\tnk\n森\teee\n醒\tyo\n伙\tjch\n残\tgfp\n戏\trpg\n妻\tfbb\n折\tutj\n甲\tsjj\n啦\tduil\n套\tmpc\n塔\tglj\n馆\tqwk\n秋\txch\n梅\teek\n迷\tpuc\n典\tihb\n灯\tca\n厉\txfp\n秀\txvn\n扩\tuxg\n曲\tyq\n努\tbr\n潜\tkhh\n街\tpgg\n硬\tmfo\n宇\twfn\n哭\tddm\n阻\ttfq\n萨\tlt\n纵\tijj\n喊\tdnfd\n搞\tugg\n冒\toqm\n罢\tygk\n盛\tnaa\n塞\twqhg\n妹\tba\n萧\tlbp\n桌\tyoe\n圆\trdo\n纷\tihp\n悲\trh\n鼓\thci\n淡\tkcch\n访\tslf\n础\tmsm\n杜\tegt\n宽\twl\n拜\tufa\n犹\tmo\n抽\tudy\n刑\tflp\n偏\tjmi\n奔\tmnl\n侵\tjbw\n延\ttsu\n懂\thll\n蒋\tlal\n针\tzn\n抬\tukd\n舞\telfv\n赞\tqpq\n侧\tjop\n赛\twqh\n纯\tifs\n申\togs\n夺\tmk\n柳\teb\n距\tpnn\n丹\tmzt\n仿\tjlf\n川\toc\n途\tjxu\n曹\tfyo\n购\tonk\n亿\tjai\n乌\txuu\n胸\tvnb\n浪\tkii\n贝\tob\n偷\tjjv\n姆\tbkm\n竞\tidp\n茶\tlje\n末\tfem\n毁\tpur\n烧\tcpf\n伟\tjgw\n库\txyc\n弃\tblc\n墙\tggh\n雅\tlu\n贸\tbo\n沿\tkod\n爆\tcol\n振\tufc\n趣\tpq\n操\tudd\n诚\tsna\n挑\tupw\n杰\tech\n轰\tyrr\n盟\tova\n勇\tkts\n敬\tlgh\n狗\tmgj\n恨\thig\n迹\tzcu\n呆\tdem\n疾\taos\n哲\tutd\n促\tjpu\n麦\tahi\n横\tenh\n丰\taf\n闭\tant\n撤\tubv\n析\tetj\n挂\tuggt\n彩\tyee\n埃\tgko\n召\tpdk\n童\tidl\n摩\tzu\n乘\txav\n符\trjk\n筑\truo\n眉\tcq\n侠\tjhhb\n袭\ttt\n孤\thyg\n培\tgid\n耶\tqte\n染\tkke\n稍\txyv\n妙\tbyt\n凶\tbmk\n页\twy\n戴\tnpq\n洗\tkqp\n陷\ttxp\n络\tisg\n植\tenq\n厚\txoh\n措\tulo\n瓦\trw\n援\tuyf\n汇\tkn\n触\txtc\n售\tud\n违\tguc\n粮\tpii\n泪\tkq\n彻\twr\n洪\tklh\n献\tnmgm\n魂\tbag\n抢\tujz\n玄\tziy\n巧\tufae\n珠\tnta\n劲\trus\n彼\twrp\n摸\tul\n凭\tjtg\n暂\tyto\n碰\tmhc\n皆\tvvu\n尖\tymd\n忠\tdgh\n奉\taiu\n享\tghi\n聚\tqrt\n胆\tvof\n厅\txad\n闹\taz\n灰\tnch\n津\tkbv\n倾\tjvw\n订\tsad\n鸟\txn\n扑\tuyb\n孔\thae\n汽\tkvq\n吓\tdfy\n驻\tnin\n叔\tyfyr\n凤\tory\n紫\tsvi\n妖\tbtm\n凌\twgh\n唱\tdoo\n梁\tkph\n箭\trhv\n融\tncc\n殊\tgta\n课\tsqe\n莱\tlah\n奴\tbry\n扫\tubj\n肩\tmv\n鼻\toql\n庆\txmd\n镜\tzxp\n菜\tlye\n恢\thnc\n御\twaz\n烦\tcwy\n裁\tnpt\n估\tjcg\n隔\ttng\n尸\tcs\n尾\tcv\n仪\tjib\n瞧\tquc\n迟\tciu\n圈\trhh\n译\tsru\n骂\tddn\n珍\tnje\n币\ttrj\n惨\thkm\n剩\txa\n愈\tjvph\n飘\tvfo\n荒\tlfo\n惯\thko\n缘\tibj\n曼\toyr\n舍\tjas\n季\txhi\n旗\tlez\n艾\tlbi\n牌\taut\n恰\thj\n废\txsr\n腰\tvvb\n腿\tviu\n玛\tnnm\n累\tqis\n涉\tkssi\n燕\tldac\n朗\tiivy\n颗\tqew\n签\trjkf\n吹\tdeq\n罚\tysp\n拒\tunn\n仰\tjbz\n描\tulq\n杯\tecb\n奖\talm\n奋\tmqt\n奶\tbv\n贫\thpo\n甘\tzg\n婆\tkrb\n繁\tekhi\n穷\tesl\n伏\tjmq\n幕\tlomr\n殿\tclhr\n沈\tkwp\n绍\tipdk\n启\tmdk\n缩\tiwj\n粗\tpfq\n弗\ttf\n患\tddgh\n仇\tjkj\n债\tjaob\n碎\tmzj\n挺\tutg\n泰\taik\n羊\tgyy\n旋\tlets\n晓\topf\n障\ttxn\n桥\tetm\n仁\tjme\n郎\tiit\n孟\tham\n讯\tsan\n虫\tcc\n郭\tghte\n幻\tiae\n赫\tgcg\n裂\tgpt\n凝\twvo\n颜\tix\n刊\tepd\n慈\thiih\n吕\tddk\n昨\towa\n辛\tnx\n役\twrs\n逼\tfdqu\n泛\tktr\n瑞\tnvl\n伴\tjhu\n袁\tgdt\n翼\tzq\n舒\tjaiv\n宜\twfq\n偶\tjqv\n峰\tvha\n径\twru\n岂\tvvj\n潮\tkno\n捕\tunf\n辆\tyml\n邪\tlte\n症\tafs\n颇\trwy\n插\tulp\n袋\tjpt\n爬\tymb\n掩\tumo\n霍\ttui\n浮\tkyh\n倍\tjid\n壮\tags\n豪\tgjs\n拔\tunr\n拖\tuee\n渡\tkxlr\n悄\thyv\n堆\tgui\n鸡\trx\n狼\tmii\n播\tutp\n零\ttjks\n躲\tzo\n映\tom\n灾\twc\n尺\tcid\n俗\tjhg\n疯\taobi\n丧\tght\n冬\thw\n辩\tnsn\n炎\tcch\n咬\tdab\n码\tmn\n猜\tmav\n壁\tcdng\n艘\tipg\n滚\tkth\n贴\toyd\n赏\tsob\n劝\trs\n兽\thqf\n番\ttpq\n哼\tdgr\n撞\tuid\n伍\tjwu\n柔\tite\n旦\tofi\n跃\tpt\n隆\tthf\n魏\txba\n狠\tmig\n糊\tpcv\n扎\tuae\n忧\thoy\n衡\tpwv\n帐\trpc\n崇\tvwf\n汗\tkeg\n赖\txxo\n薄\tlkn\n净\twxb\n粉\tphp\n岩\tvms\n忆\thai\n堡\tjdeg\n巡\tou\n仔\tjhi\n欣\tte\n偿\tjsb\n愤\thnl\n阁\tasg\n详\tsgy\n喵\tdlq\n竹\tru\n漫\tkoy\n爹\thbl\n董\tlld\n撒\tulv\n佩\tjof\n丢\ttgk\n绕\tipf\n赤\tgch\n扶\tuhf\n蛋\ttc\n吐\tdgt\n返\txru\n闲\tae\n陪\ttidk\n乔\ttmp\n盾\txnq\n矿\tmxg\n矛\tit\n耐\tlkc\n焦\tuch\n侍\tjgk\n拳\thhu\n墨\tpgt\n允\tkpe\n侯\tjno\n滑\tkf\n润\tkan\n胞\tvnv\n邦\tate\n辈\tryc\n井\tqj\n荷\tljzk\n摄\tuqr\n署\tyqo\n荡\tlka\n敏\tekhp\n递\thtu\n泥\tkcvb\n骗\tnmi\n曰\torr\n彭\thes\n租\txfq\n晨\tof\n搜\tupg\n昏\tbor\n幅\trfd\n奏\taif\n幽\tvii\n兼\thbc\n肃\tbph\n艇\titgu\n辑\tydq\n枝\teci\n岳\ttfv\n黎\txpj\n浓\tkwti\n酸\tyk\n污\tkma\n凉\twg\n辞\tanx\n嘛\tdz\n戒\tpl\n躺\tzss\n菲\tlr\n垂\tllg\n贯\tkob\n炼\tcry\n苍\tljz\n箱\treq\n驾\tsdn\n驱\tnnb\n凯\tvvoj\n截\tnpu\n埋\tgdl\n拼\tuhl\n涌\tkkt\n乏\ttri\n腾\tvhh\n悉\ttph\n冯\twnm\n诊\tsje\n皱\txbr\n桑\trrre\n慧\taab\n漂\tkvf\n蛇\tcwv\n恭\tlhh\n迪\tduc\n恋\tzchx\n侦\tjyo\n钢\tzmb\n氏\tbss\n贼\topn\n燃\tcvmc\n饮\tqeq\n碍\tmof\n韦\tgw\n尘\tygt\n餐\tgr\n邓\trte\n阅\tahd\n液\tkzjv\n欺\tzhe\n呵\tdzk\n牵\tmwq\n综\tiwf\n俩\tjml\n踪\tpwf\n殖\tgnqf\n趋\tpxb\n磨\tzms\n绪\tiqo\n锁\tzyo\n陶\ttna\n蒂\tliw\n慌\thlf\n臂\tcdnv\n慕\tlomh\n晋\tfco\n卢\tycs\n惠\tnqk\n储\tjsq\n汤\tkae\n宪\twqp\n扰\tuoy\n宙\twdy\n聪\tqhd\n怨\tlzh\n呈\tdnw\n跌\tpth\n匆\tnei\n铺\tznf\n脉\tvik\n锋\tzhaf\n劫\tgks\n芳\tllf\n宾\twth\n帕\trub\n盗\twea\n佳\tjgg\n遵\thyku\n哦\tdtu\n幼\tisl\n仗\tjfb\n伪\tjis\n驶\tndb\n腹\tveo\n牧\tqhp\n踏\tpk\n惜\thlo\n朵\toe\n袖\ttd\n胁\tvsh\n抛\tuksl\n霸\tttv\n媒\tbze\n频\tssw\n勃\tnwhs\n盯\tqad\n弯\tzcb\n抚\tudu\n扭\tuagt\n册\tic\n励\txfps\n颤\tzrd\n键\tzbu\n勤\tlda\n贡\tuob\n洁\tkgd\n怜\thjk\n寿\takc\n腊\tvlo\n贺\tsdo\n雾\tths\n龄\tljk\n椅\temz\n挤\tuqq\n扣\tudk\n届\tcdy\n券\thhpd\n熊\tkvv\n尝\tsb\n询\tsno\n喷\tdnl\n娇\tbtmp\n夹\thhb\n肥\tvmb\n祝\tfdp\n吾\twdk\n寄\twmz\n疼\tahw\n斜\tjxj\n拟\tuvj\n迁\tluc\n钻\tzyd\n浑\tkwy\n肚\tvgt\n艰\trig\n牢\twqn\n惧\thqh\n挡\tuybj\n敲\tghp\n庞\txtl\n叛\thux\n鸣\tdxn\n柏\teub\n薛\tltk\n屈\tcsm\n叙\tjxr\n悟\thwd\n坡\tgrp\n辽\truc\n腐\txjkj\n匹\tnpe\n铜\tzmf\n籍\tral\n穆\txuye\n割\twadp\n旨\tvor\n擦\tuwhf\n沟\tknk\n抖\tujd\n掠\tugy\n奈\tmfs\n泉\tuks\n狱\tmsmq\n揭\tuon\n晃\tomg\n怔\thfsi\n猎\tmlo\n诱\tsxv\n娜\tbau\n猫\tmlq\n醉\tyz\n祭\thfs\n貌\tmup\n池\tkey\n琴\tnnj\n寂\twyf\n遥\tyau\n瓶\thlr\n羽\tzv\n昆\tovv\n辉\tmwy\n吞\tfmd\n牲\tqls\n哀\ttdk\n昌\toor\n厌\txmq\n晶\tooo\n剂\tqpd\n绩\tiao\n筹\trak\n柱\tein\n搬\tuir\n莲\tlyu\n鹰\txjux\n鞋\ttgg\n俊\tjkh\n恼\thzb\n瞪\tqhz\n俱\tjqh\n稿\txgg\n搭\tulj\n僧\tjhr\n纠\tiij\n亏\tmae\n睁\tqxb\n弥\tbx\n践\tpfp\n猪\tmqo\n迈\tfpu\n瘦\tapgr\n浅\tkfp\n挣\tuxb\n逻\tylu\n宿\twjf\n疲\tarp\n邻\tjkt\n惑\tpdfh\n胖\tvhu\n丛\tjjf\n跪\tpxx\n傻\tjtr\n贾\tvob\n稀\txbnr\n脏\tvxg\n慰\tcfkh\n廷\ttgu\n饰\tqer\n鉴\tprz\n贷\tjpo\n祥\tfgy\n葛\tlon\n冠\twmpk\n跨\tpmm\n耗\tavm\n赔\toidk\n悬\tfkhx\n仲\tjdg\n拦\tuht\n戈\tpg\n粒\tpil\n遣\tcku\n捉\tupu\n赢\tfdv\n拨\tusr\n傅\tjnk\n仆\tjyb\n锦\tzur\n趁\tpje\n贤\tprob\n贪\tjao\n澳\tktmm\n削\tyvp\n衰\ttdf\n扔\tuvn\n卓\tyon\n湿\tkoc\n瞬\tqyw\n桃\tepw\n鼠\tps\n辖\tywad\n遂\thju\n闷\tahx\n雕\tmgdu\n邮\tdte\n誉\tkhs\n暖\toyf\n阔\taka\n乾\tnona\n祸\tfdmj\n押\tusj\n枚\tehp\n梯\tehtf\n豆\tzd\n歇\tonfe\n嫌\tbhb\n碗\tmwl\n涂\tkjx\n挖\tuea\n抑\tubz\n烂\tcht\n契\tapm\n娃\tbgg\n循\twxn\n渔\tkwv\n嘉\thsd\n丑\tagt\n赋\tofps\n斤\ttj\n勾\tnks\n寺\tgkc\n吼\tdha\n坛\tgby\n惟\thui\n邀\tulhu\n械\tepl\n滴\tkim\n赴\tpyb\n堪\tgz\n帽\tro\n帅\tprj\n逊\thyu\n傲\tjap\n吨\tdfs\n仓\tjzj\n浩\tkqd\n寸\tkc\n姿\tweb\n覆\tvwe\n闯\tanm\n愚\tqvh\n痕\taig\n牺\tqvx\n瑟\tnnht\n唤\tdx\n赌\toqo\n庙\txdy\n蔡\tlhfs\n扁\tmic\n哩\tddl\n煤\tcze\n玻\tnrp\n汪\tknw\n苗\tlqt\n峡\tvhhb\n敦\tghh\n逆\thsu\n纹\tivw\n宅\twtr\n妥\tybn\n忌\tvhx\n郁\tnvt\n笼\trtl\n盐\tgya\n玲\tnjk\n唇\tfdk\n耀\tmzu\n慎\thnq\n秩\txth\n涨\tkbp\n墓\tlomg\n饿\tqtu\n陵\ttgh\n羞\tgag\n恒\thfo\n纽\tiag\n弓\tbg\n糖\tpxbd\n锐\tzhd\n缝\tiha\n夸\tmma\n喘\tdvl\n碧\tnum\n卧\tqyb\n宏\twnk\n岗\tvmbi\n惩\twfsh\n谨\tsld\n疏\ttbo\n斥\ttid\n滋\tkhi\n串\tddg\n漠\tklo\n屏\tchl\n悔\thek\n溜\tkbq\n挨\tuko\n档\teybj\n雇\tmui\n扇\tmzv\n蛮\tzcc\n鸿\tkux\n歼\tglq\n砍\tmeq\n欠\teq\n糟\tpfy\n添\tkfm\n柴\tsve\n屠\tcqo\n勉\twps\n肌\tvoj\n齿\tlc\n赐\toon\n桂\teggt\n刷\tcrp\n聊\tqb\n肝\tveg\n捷\tufb\n喂\tdqf\n舱\tijz\n啥\tdja\n唉\tdko\n磁\tmhi\n茫\tlkf\n嫁\tbwj\n乙\tai\n嘿\tdph\n瓜\tyg\n丘\ttfi\n菌\tlrx\n粹\tpzjn\n催\tjvu\n吩\tdhp\n披\turp\n履\tcwe\n乳\tyha\n煞\txbhc\n廉\txhbc\n兹\thii\n儒\tjtl\n扯\tusi\n狐\tmyg\n姊\tbtf\n缠\tixd\n伐\tjpg\n矮\toxb\n姜\tgbn\n绘\tijb\n卿\tbig\n斩\tytj\n穴\tex\n肤\tvhf\n陛\ttvv\n鹏\tvvx\n肿\tvdg\n辅\tynf\n肖\tyvy\n沃\tktm\n巫\tujj\n罩\tyyo\n柄\tefm\n缴\tiul\n潘\tktp\n蜂\tchaf\n窝\ted\n舌\tas\n晴\toav\n弘\tbks\n隶\tbksj\n悠\tjghh\n耕\taqj\n郡\tbtdt\n爵\tyyik\n奸\tbeg\n绳\tidm\n辨\tnpn\n溃\tkco\n婴\toob\n孝\tqhi\n怖\thnr\n丫\thgs\n愁\txchx\n亭\tgad\n携\tuuv\n泄\tkla\n疫\tars\n谭\tsvon\n翠\tzzj\n霞\ttcm\n惹\tlndh\n酷\tyqd\n癌\tadd\n翰\tnonz\n昂\tobz\n劈\tcdnp\n甜\tazg\n棉\teur\n剥\tbkp\n卑\tutn\n矣\tkos\n袍\ttnv\n轨\tykj\n卜\tybb\n柯\tezk\n吟\tdjae\n鞭\ttjf\n宰\twnx\n脖\tvnw\n俘\tjyh\n辱\tfkc\n尿\tcks\n莉\tlxp\n咽\tdrm\n臭\tomq\n吻\tdne\n疆\tbgf\n饱\tqnv\n抹\tufe\n愣\thyl\n凑\twai\n芬\tlhp\n朕\tvhm\n畏\tqft\n骤\tnqr\n禅\tfhq\n拾\tuj\n炉\tcmh\n渴\tkon\n铃\tzjk\n妨\tblf\n填\tgnq\n豫\tiwx\n劣\tyts\n竭\tion\n愉\thjv\n摔\tuzi\n览\tpre\n顽\tmpw\n脆\tvxx\n吵\tdyt\n泡\tknv\n毅\tijr\n吊\tdrj\n扮\tuhp\n狄\tmch\n腔\tveu\n遮\txlcu\n鹿\txl\n肠\tvae\n灌\tkld\n夕\tlx\n址\tgsi\n壳\tgwo\n氧\tvgy\n屁\tcvv\n饶\tqpf\n狭\tmhh\n摘\tuim\n芒\tlfw\n棋\tezh\n讼\tshk\n杆\teeg\n翁\thkz\n倘\tjss\n胃\tqvy\n拆\tuti\n盒\tjda\n驰\tney\n鲍\twnv\n纲\timb\n璃\tnz\n艳\taxm\n匪\tnrf\n蓄\tlzi\n妄\tfbn\n姚\tbpw\n漏\tkct\n秒\txyt\n柜\tenn\n掏\tuna\n函\takmk\n哎\tdlb\n於\tljw\n裤\ttxy\n猴\tmjn\n枯\tecg\n喉\tdjn\n悦\thhd\n痴\taod\n畜\tziq\n衫\ttes\n寨\twqhe\n誓\tuts\n翅\tczv\n膀\tviw\n钦\tzeq\n纤\tilq\n厨\txzk\n撑\tusu\n宴\twob\n锅\tzdm\n涛\tkak\n淮\tkui\n盈\tvra\n胎\tvkd\n崩\tvvv\n拐\tuds\n轩\tyeg\n茨\tlweq\n盆\thpa\n崖\tvxgg\n砸\tmnr\n刹\tbep\n姬\tbqc\n晕\towy\n赚\tohb\n囊\tndw\n凄\twfb\n膜\tvlom\n葬\tlgv\n挽\tuwp\n耸\tjjq\n脾\tvut\n诞\tsts\n懒\thxx\n妃\tbvj\n斑\tnvn\n崔\tvui\n後\twih\n嫂\tbpg\n颠\tnqh\n棵\teqe\n佐\tjnu\n尉\tcfk\n陡\ttpz\n眨\tqtr\n陀\ttwv\n陕\tthh\n蜜\twhtc\n饲\tqaf\n肺\tvfr\n颈\truw\n眠\tqdm\n喃\tdnm\n撕\tuzh\n驳\tnbb\n摊\turui\n朴\teyb\n拘\tugj\n酬\tyoo\n塑\thsvg\n爪\tya\n寇\twmph\n岭\tvjks\n裕\tthg\n僵\tjfq\n卵\tbl\n盼\tqhpd\n赠\tohr\n狮\tmpf\n逝\tutu\n藤\tlvh\n湘\tkeq\n棍\teov\n堵\tgqo\n歪\tcfs\n窃\terp\n冻\twry\n俯\tjxjk\n虹\tcug\n陌\ttfu\n骄\tntm\n甫\tnff\n盲\tfqm\n姻\tbrm\n畅\toga\n拓\tums\n啸\tdbp\n抄\tuyt\n昭\topdk\n猩\tmol\n拱\tulh\n摧\tuvu\n菩\tlid\n蓬\tlha\n铭\tzld\n浙\tkut\n洒\tkvx\n氛\tvhp\n饥\tqoj\n踢\tpo\n璇\tnle\n泊\tkub\n琼\tngy\n锡\tzon\n滩\tkrui\n捧\tuai\n讶\tsly\n咳\tdkh\n嘱\tdct\n绵\tiur\n筒\trmf\n冈\tmbi\n萍\tlke\n挪\tuau\n辟\tcdn\n钩\tznk\n歧\tsci\n芝\tlri\n谅\tsgyx\n逢\thau\n鼎\tqaa\n廊\txii\n吁\tdfn\n栏\teht\n巾\trj\n罕\twhe\n链\tzyu\n溪\tkyi\n趟\tpss\n坑\tgzo\n躯\tznb\n吏\tfdb\n歉\thbce\n沾\tkyd\n妮\tbcvb\n筋\trvs\n殷\tzrs\n棒\teaiu\n坠\ttjg\n渊\tkpp\n匠\tntj\n耍\tlb\n葡\tlnn\n寡\twwp\n捏\tuog\n鸭\tsx\n冤\twwt\n钉\tzad\n舟\tio\n瞎\tqw\n笨\tref\n辰\tfc\n瞒\tqlm\n剪\thvp\n耻\tqsi\n漆\tkej\n阎\taxp\n骇\tnkh\n擅\tuzr\n孕\tvhi\n诡\tsxx\n莎\tlky\n昔\tlor\n蠢\taioc\n宠\twtl\n茅\tlit\n谦\tshbc\n淋\tkee\n账\topc\n胶\tvab\n玑\tnoj\n胀\tvpc\n庸\txbt\n衙\tpwd\n乞\teai\n媚\tbcq\n膝\tvejk\n逮\tbku\n宛\twlz\n翔\tgzv\n夷\tmbg\n骚\tnri\n荆\tlfl\n杭\tezo\n裸\ttqem\n乖\tlav\n姨\tbmb\n哑\tdfc\n嚷\tdtd\n旺\tonw\n叉\trid\n恍\thmg\n惶\thun\n咒\tddo\n镖\tzvf\n亨\tgrl\n窜\tedd\n杖\tefb\n蝶\tclae\n逸\twuc\n恕\tbdh\n搏\tunk\n焰\tcx\n绣\tixv\n禧\tfhd\n淫\tkytg\n丐\tfya\n碑\tmut\n鹅\ttup\n蒲\tlknf\n阐\tahq\n轿\tytm\n伞\tjhn\n蔽\tlfh\n咐\tdjk\n兆\tpww\n爽\tmbbb\n豹\tmni\n弦\tbzi\n薪\tlie\n冥\twoa\n捐\tudv\n谎\tslfo\n愧\thag\n衷\ttdg\n倏\tjghm\n猿\tmgdt\n哇\tdgg\n粘\tpyd\n栽\tnpem\n浦\tknf\n掀\tute\n脂\tvvo\n嘲\tdno\n框\tennw\n矩\tonn\n龟\twgg\n叠\trrr\n谊\tswf\n脊\twwj\n刮\tapd\n兔\twtt\n哨\tdyv\n娶\tqrb\n聘\tqdf\n慨\thid\n俺\tjmo\n嗓\tdrr\n舅\tpqs\n寓\twqv\n戚\tnyf\n仑\tjl\n恳\tihx\n瘤\tabq\n掘\tucs\n浴\tkhg\n倡\tjoo\n裹\ttq\n圳\tgoc\n渠\tknn\n钓\tzni\n涵\tkakm\n泼\tksr\n瓷\twer\n祈\tft\n窄\tewa\n拂\tutf\n巢\toqe\n贞\tyob\n纱\tiyt\n绑\tiat\n茂\tlnu\n砖\tmmai\n谱\tshc\n坟\tgvw\n噢\tdtmm\n硕\tmw\n侄\tjyi\n蹲\tphy\n甩\ttae\n匈\tnbm\n胳\tvsg\n躬\tzbg\n徽\twvfh\n邵\tpdt\n蜀\tync\n篮\trpr\n竖\tpri\n颁\thpw\n焉\tfsf\n壶\tgwc\n浸\tkbw\n萄\tlna\n僚\tjmh\n玫\tnhp\n桓\tefof\n攀\tebb\n撰\tuvvh\n旬\tnor\n媳\tboh\n嘻\tdhd\n蒸\tlak\n裙\ttbt\n滥\tkpr\n愕\thdd\n讽\tsobi\n霜\tteq\n诏\tspd\n躁\tpdd\n厘\txdl\n憾\thnf\n帘\terj\n巷\tlhv\n溶\tkwhg\n勋\tdos\n亩\tzqt\n晰\toet\n滞\tklwr\n舆\tpyh\n咸\tnfd\n衔\tpzj\n邱\ttft\n挫\tujjg\n搁\tuasg\n桩\texg\n雀\tyui\n辣\tnxs\n诧\tswt\n哗\tdjvn\n屡\tcpb\n喻\tdjv\n窑\teaf\n踩\tpye\n鸦\tlxn\n郊\tabt\n株\teta\n秃\txoj\n禄\tfbk\n厦\txfo\n卒\tzjj\n丸\tkid\n聂\tqrr\n雁\txju\n琳\tnee\n虏\tzsl\n汝\tkbn\n肢\tvc\n咕\tdcg\n耽\tqwp\n咖\tdsd\n煌\tcun\n肆\tpbv\n哄\tdlh\n弊\tfhl\n耿\tqch\n叮\tdad\n倦\tjhh\n腺\tvuk\n彪\tzes\n鹤\twux\n尴\topr\n巩\tuoi\n焚\teec\n饼\tqhl\n鄙\tdnrt\n拢\tutl\n瞄\tqlq\n勿\tnes\n菊\tlnp\n厢\txeqm\n腕\tvwl\n斋\tvle\n诈\tswa\n呜\tdxu\n怯\thgk\n铸\tzak\n诀\tsnj\n绢\tidv\n魄\tuag\n婉\tbwl\n兜\tubn\n涅\tkog\n禀\tzrdf\n驴\tnmh\n垄\ttgt\n擒\tujzv\n囚\trjr\n捞\tulw\n舶\tiub\n倚\tjmz\n喀\tdws\n贱\tofp\n稣\twxh\n冀\tavq\n厄\txzj\n溢\tkka\n炭\tvnc\n稽\txov\n渗\tkkm\n泣\tkil\n罐\tald\n螺\tcqi\n衍\tpks\n狡\tmab\n桶\tekt\n塌\tgoz\n卸\tazj\n嘶\tdzht\n帆\troi\n侨\tjtm\n逗\tzuc\n昧\toaw\n蓦\tlomn\n坎\tgeq\n棺\tewk\n荐\tlng\n雌\tsvu\n棚\tevv\n靖\tiav\n裴\trti\n栖\tevx\n钧\tznw\n贩\toxr\n啡\tdrf\n衬\ttkc\n兑\thdp\n榜\teiw\n魁\tajd\n谜\tspu\n毙\tvvg\n麽\tztk\n瞥\tfhqm\n纺\tilf\n掷\tuhm\n肾\tprv\n烛\tccc\n谬\tszj\n锻\tzuf\n芦\tlmh\n膨\tvhe\n珊\tnic\n刃\tpid\n隙\ttyo\n垒\tkkkg\n嫩\tbxh\n钥\tzvy\n塘\tgxb\n韵\txnw\n旱\toeg\n咨\twed\n喇\tdxp\n驼\tnwv\n颂\thkw\n譬\tcdns\n尹\tbtp\n傍\tjiw\n坊\tglf\n哟\tdin\n忖\thkc\n霉\ttek\n苹\tleh\n佣\tjty\n搂\tupb\n堤\tgot\n怡\thkd\n淘\tkna\n谍\tsla\n藩\tlkt\n贬\totr\n斧\thbt\n糕\tpgc\n俞\tjvp\n颖\tvxw\n砰\tmeh\n稻\txyp\n熙\tqvc\n盏\tfpa\n棠\tsem\n黯\tpxy\n襄\ttdd\n烤\tcqf\n詹\txxhs\n煮\tqoc\n魅\taaw\n蕴\tlio\n谐\tsvv\n谕\tsjvp\n骆\tnsg\n捆\ture\n剿\toqep\n枕\tewp\n轴\tydy\n笛\trdy\n挟\tuhh\n逾\tjvpu\n咧\tdgp\n斌\tvfps\n捡\tujk\n壤\tgtd\n黛\tjpp\n沼\tkpd\n辐\tyfd\n娱\tbdf\n淑\tkyf\n淹\tkmo\n窦\tena\n呐\tdmj\n灿\tcvs\n迦\tsdu\n绅\tiog\n禽\tjzb\n犬\tmq\n倩\tjav\n彦\tixe\n伽\tjsd\n蹄\tpiw\n枢\tenb\n啪\tduu\n妾\tibn\n搅\tukw\n汁\tkns\n凛\twz\n羡\tgwe\n伺\tjaf\n蚁\tcib\n剖\tidpd\n幢\tridl\n绞\tiab\n瞅\tqxc\n俏\tjyv\n娟\tbdv\n奢\tmqor\n膊\tvnk\n谴\tsck\n丙\tfmj\n滨\tkwth\n窥\tehe\n斐\trvw\n祷\tfak\n藉\tlalo\n敞\tshp\n厮\txzht\n凰\toun\n咯\tdsg\n顷\tvwy\n沸\tktf\n绸\timg\n椎\teui\n莹\tlwn\n垫\tukig\n廖\txzje\n捣\tuxv\n叩\tdzj\n蜡\tclo\n侮\tjek\n眸\tqkq\n逛\tmnu\n芙\tlhf\n炒\tcyt\n谣\tsya\n沫\tkfe\n咋\tdw\n屯\tfsc\n屑\tcyv\n瑰\tnag\n峻\tvkhh\n喧\tdwf\n晒\tovx\n莽\tlml\n矢\tos\n熬\taphc\n龚\ttlh\n撇\tufh\n梳\tebo\n醇\tygh\n辜\tcnx\n迄\teau\n匙\totv\n嫉\tbao\n睹\tqqo\n镑\tziw\n诵\tskt\n嗅\tdom\n痒\tagy\n栗\tvem\n颊\thhw\n缅\tibm\n缚\tink\n樱\teoo\n妒\tbmh\n麟\txpl\n逍\tyvu\n潭\tkvo\n芯\tlhx\n郝\tgct\n蛛\tcta\n凳\thzo\n堕\ttnvg\n揉\tuit\n婢\tbut\n梭\tekhh\n嗣\tdia\n虞\tzdf\n垃\tgil\n妓\tbci\n勘\tzhas\n篷\trha\n乍\twa\n桐\temf\n缕\tipb\n叱\tdvb\n鲸\twgyx\n贿\tonv\n趴\tphb\n朽\tefa\n硅\tmgg\n奎\tmggt\n钞\tzyt\n磕\tmgka\n瑶\tnya\n隋\ttnu\n憎\thhr\n蔑\tlyn\n馨\tgcr\n杏\tedk\n栋\tery\n昼\tcio\n苟\tlgj\n腥\tvol\n萝\tlyl\n弩\tbrb\n碌\tmbk\n寝\twab\n倭\tjxb\n垮\tgmma\n岚\tvobi\n燥\tcdd\n姥\tbql\n沦\tkjl\n兀\tfpe\n铅\tzod\n砂\tmyt\n兮\thfa\n牟\tkqn\n哉\tnpd\n浆\talks\n虐\tzbj\n嗡\tdhk\n旷\toxg\n沮\tkfq\n帖\tryd\n诛\tsta\n鳞\twpl\n涯\tkxg\n遁\txnqu\n澄\tkhz\n锤\tzll\n滔\tkyp\n寞\twlo\n妆\tabn\n蹦\tpvv\n阮\ttmpe\n募\tloms\n敷\tnlh\n眯\tqpm\n汹\tkbmk\n嘟\tdqot\n霆\tttg\n褐\tton\n畴\tqak\n蚕\tfmc\n嚼\tdyy\n奠\thym\n榴\tebq\n拙\tusm\n蚀\tqcc\n荫\tltv\n鸽\tjdx\n咦\tdmbg\n甸\tnqt\n吱\tdci\n泌\tkht\n暮\tlomo\n挠\tupf\n叭\tdhb\n灶\tcgt\n峨\tvtu\n蓉\tlwh\n菱\tlghh\n稚\txui\n澡\tkdd\n蔓\tloy\n泻\tkwf\n裘\tfkit\n溅\tkof\n丞\takf\n秉\txbj\n绒\tipn\n遏\tonfu\n彬\teees\n熄\tcoh\n朦\tvlw\n琢\tnji\n膏\tgvy\n泳\tkik\n凿\tcgm\n敛\tjkfh\n庐\txmh\n惭\thyt\n畔\tqhu\n沧\tkjz\n酿\tyii\n阀\tajp\n虔\tzvw\n侣\tjdd\n匀\tnwb\n拯\tuak\n莺\tlwx\n屿\tvfa\n沪\tkmh\n叟\tpgr\n藻\tlkde\n雍\tziu\n瘫\tarui\n蹈\tpyp\n揽\tupr\n氢\tvru\n豁\twadh\n骸\tfkh\n陋\ttfm\n捂\tuwd\n冶\twkd\n懈\thxt\n坪\tgeh\n蔬\tltb\n翘\tpfpz\n嘎\tdfop\n缔\tiiw\n钮\tzag\n娥\tbtu\n讥\tsoj\n晤\towd\n灼\tcni\n舵\tiwv\n纬\tigw\n圾\tgcj\n澜\tkax\n茎\tlru\n鄂\tddmt\n歹\tgd\n邹\txbte\n枉\tenw\n琉\tnbo\n庇\txvv\n杉\tees\n跋\tpnr\n梢\teyv\n戳\tzup\n蝉\tchq\n毯\tvcc\n萎\tlxb\n裳\tsti\n绰\tiyo\n佑\tjnd\n狸\tmdl\n拚\tukl\n窟\tecs\n硫\tmbo\n腻\tvpmo\n憋\tfhh\n凹\tmfi\n赎\tona\n崎\tvmz\n烁\tcbyx\n嚣\tddw\n焕\tcxm\n暑\toqor\n扛\tuug\n匕\tvbb\n揣\tuvl\n凸\tvfi\n怠\tkdh\n觅\tyej\n呕\tdnb\n孽\tltkh\n楞\teyl\n矫\totmp\n潇\tklb\n簇\trle\n浇\tkpf\n枣\temw\n绥\tiyb\n芽\tlly\n蝇\tcdm\n僻\tjcd\n榻\teoz\n宦\twqc\n沐\tkem\n毋\tkuu\n碟\tmla\n仕\tjgs\n戎\tpns\n呻\tdog\n啼\tdiw\n虾\tcfy\n樊\tebbm\n棕\tewf\n萌\tlov\n嫣\tbfs\n伶\tjjks\n鞘\ttyv\n删\tipd\n嵌\tvze\n暇\tocm\n蛟\tcab\n茵\tlrm\n驯\tnoc\n炕\tczo\n碳\tmvn\n烫\tkaec\n咚\tdhw\n苑\tllz\n蚂\tcnm\n厥\txhs\n雯\ttvw\n赦\tgchp\n慷\thxb\n旭\tkor\n煎\thvpc\n惕\thon\n颓\txow\n坝\tgob\n悍\thoe\n匿\tnln\n噪\tddde\n涡\tkdmj\n禹\ttdv\n敝\tfhp\n缸\taug\n簿\trkn\n坤\tgog\n琐\tnyo\n蚊\tcvw\n粟\tvpm\n诫\tspl\n髓\tfnuu\n梵\teeo\n溯\tkhsv\n蝴\tccv\n尬\tojp\n涩\tkpi\n揪\tuxc\n窘\tebt\n棘\teme\n盔\tnca\n喔\tdcy\n婶\tbwo\n踱\tpxl\n嗜\tdqo\n啤\tdut\n哺\tdnf\n奕\tzcm\n淳\tkgh\n镶\tztd\n晌\totm\n粪\tplh\n铲\tzix\n瑜\tnjv\n冢\twji\n唾\tdllg\n庵\txmo\n扼\tuxz\n聋\ttqe\n庚\txbjr\n膛\tvsgt\n疤\tamb\n叨\tdpd\n佟\tjhw\n绷\tivv\n棱\tegh\n慑\thqr\n筷\trhn\n庶\txlc\n沁\tkhx\n渺\tkqy\n迂\tfnu\n梨\txpem\n拣\tury\n葫\tlcv\n浏\tkvp\n橡\tewx\n扳\tuxr\n嘘\tdzc\n牡\tqgt\n贮\towf\n窍\teuf\n襟\tteef\n眷\thhqm\n弧\tbyg\n癫\tanq\n葱\tlne\n熏\tlph\n噗\tdcgi\n炯\tcmd\n稼\txwj\n鞠\ttnp\n朔\thsv\n栅\teic\n霎\ttib\n匣\tnsj\n厕\txop\n眩\tqzi\n岔\thpv\n缆\tipr\n谏\tsxh\n呃\tdxz\n唔\tdwd\n懿\tgwzh\n斟\tzhaj\n拧\tuwa\n嗤\tdsf\n磅\tmiw\n尧\tpfpe\n鳍\twqo\n肘\tvkc\n帜\trdh\n晦\toek\n搓\tugu\n粥\tbpb\n枫\teob\n琪\tnzhb\n裔\ttmh\n彰\txne\n瞻\tqxx\n邑\tdmbk\n吭\tdzo\n垣\tgfof\n嗽\tdxe\n皓\tuqd\n竿\treg\n嚎\tdgj\n拽\tuoa\n倪\tjppe\n胧\tvtl\n峭\tvyv\n攸\tjghp\n瓣\tnyn\n忿\thph\n扒\tuhb\n嘀\tdim\n桨\tale\n锥\tzui\n梗\tefo\n蹬\tphz\n夭\ttmd\n俭\tjjk\n淌\tkss\n廓\txgh\n浊\tkcc\n碱\tmnf\n迭\tthu\n讳\tsgw\n逞\tdnu\n邸\tbit\n檀\tezrf\n磷\tmpl\n撼\tunfh\n踉\tpiig\n娅\tbfcy\n绽\tiwt\n哆\tdll\n诬\tsuj\n靴\ttjv\n冉\tmgt\n芸\tlby\n奚\tyim\n宵\twyv\n戟\tnonp\n札\teae\n蛙\tcgg\n擎\tlghu\n沛\tkfr\n硝\tmyv\n崛\tvcs\n槽\tefy\n喽\tdpb\n礁\tmuc\n哮\tdqh\n腮\tvqhx\n蜘\tcod\n妞\tbagt\n刁\tafi\n栓\tejn\n熔\tcwh\n懊\thtm\n铮\tzxb\n侥\tjpf\n炽\tcdh\n鞑\ttmu\n胚\tvcf\n苛\tlzk\n迸\thlu\n敖\taph\n轼\typu\n祁\tfte\n拇\tukm\n窒\teyi\n邢\tflt\n酌\tyni\n柬\txhb\n悼\thyo\n瑛\tnlm\n颐\tqwy\n掐\tuxp\n猝\tmzjn\n缀\tirr\n锣\tzyl\n饷\tqtm\n卦\tggyb\n壕\tggj\n噬\tdru\n絮\tbdi\n崭\tvyt\n馈\tqco\n霄\ttyvy\n荀\tlno\n岑\tvja\n褚\ttqo\n墅\tdigt\n墟\tgzc\n殆\tgkd\n涕\tkhtf\n骏\tnkhh\n矗\tnqff\n徘\twrf\n幡\trtp\n釉\ttpdy\n嗔\tdnq\n煽\tcmz\n醋\tylo\n匡\tnnw\n鞍\ttwb\n袜\ttfe\n寥\twzj\n槐\teag\n罡\tyfs\n茜\tlvx\n挚\tukiu\n缎\tiuf\n薇\tlwv\n闺\tagg\n湛\tkzha\n悯\thav\n咆\tdnv\n毓\tekb\n摹\tlomu\n颅\tycw\n陇\tttl\n唬\tdzh\n钙\tzfy\n缪\tizje\n酱\taly\n痰\tacc\n锯\tzccg\n炫\tczi\n霹\ttcd\n杠\teug\n忒\tphx\n懦\thtl\n笃\trnm\n翩\tmiz\n檐\texxs\n婿\tbtv\n搀\tuwpw\n肋\tvsl\n垦\tigt\n汰\tkmi\n捅\tukt\n蟹\txtp\n箫\trbp\n拴\tujn\n羌\tgae\n绊\tihu\n嗦\tdnwi\n洽\tkjd\n瀑\tkol\n珀\tnub\n绎\tiru\n恃\thgkc\n驿\tnru\n蟒\tclml\n撩\tumhy\n掳\tuzs\n抒\tuiv\n犀\tckq\n芭\tlmb\n舷\tizi\n甄\tvgr\n拎\tujks\n橱\texz\n睦\tqgh\n臀\tclhv\n嫦\tbsr\n娴\tbae\n粤\ttrpa\n蕊\tlhhh\n辫\tinn\n酋\thyy\n狞\tmwa\n诅\tsfq\n踌\tpak\n坞\tgxu\n渣\tkeo\n亥\tkh\n巍\tvxba\n靡\tzrf\n瘟\taoa\n瞿\tqqu\n惫\thqhx\n陨\ttdo\n脯\tvnf\n骷\tfcg\n肪\tvlf\n祀\tfvs\n祠\tfaf\n揖\tudq\n剔\tonep\n膳\tvgh\n叽\tdoj\n钝\tzfs\n缉\tidq\n狙\tmfq\n靶\ttmb\n徊\twrd\n氯\tvbk\n疮\tajz\n蔚\tlcf\n鹃\tdvxn\n啃\tdsvy\n皂\turq\n阙\tahs\n鲤\twdl\n峙\tvgk\n氨\tvwb\n禺\tqvr\n舔\tafmh\n骡\tnqi\n闽\tac\n秽\txvl\n闵\tavw\n咙\tdtl\n瑚\tncv\n嬉\tbhd\n拭\tupug\n肮\tvzo\n佬\tjql\n紊\tvis\n狩\tmwk\n咎\thyd\n栈\tefp\n嗨\tdke\n殉\tgno\n幌\trom\n苔\tlkd\n嵩\tvgg\n篱\trzb\n剃\thtp\n氓\tfdm\n婷\tbga\n昊\tofm\n砌\tmrp\n绫\tigh\n佯\tjgy\n巳\tvss\n悖\thnw\n炳\tcfm\n呛\tdjz\n濒\tkssw\n屎\tcpm\n汀\tkad\n瞟\tqvf\n孜\thhp\n嵋\tvcq\n犁\txpq\n揍\tuaim\n苇\tlgw\n掺\tukme\n趾\tpsi\n酶\tyek\n榆\tejv\n霖\ttee\n韧\tgpi\n拷\tuqf\n侈\tjll\n肇\tmhb\n饵\tqqe\n舜\tywl\n兢\tcpc\n臻\tyai\n擂\tutq\n猾\tmfg\n恤\thta\n隘\ttka\n忏\thlq\n蝗\tcunw\n颔\tjadw\n绮\timz\n琦\tnmzk\n诩\tszv\n钗\tzri\n茄\tlsd\n敕\txhp\n睿\tghq\n噜\tdwo\n跺\tpoe\n佃\tjqt\n戮\tzje\n颉\tgdw\n铀\tzdy\n倔\tjcs\n蕉\tluch\n褂\ttggy\n溺\tkbww\n谟\tslo\n皖\tuwm\n狈\tmob\n噩\tndd\n糙\tpqd\n瘾\tatx\n赁\tjtgo\n埔\tgnf\n咄\tdsm\n畸\tqmz\n赣\txnh\n樵\teuc\n亢\tzoj\n侃\tjdo\n嫡\tbim\n眶\tqnn\n涤\tkhe\n捻\tuja\n鸠\tkxn\n捍\tuoe\n芜\tldu\n酥\tyxh\n屉\tcla\n眺\tqpw\n抿\tudm\n辙\tybv\n胤\tpiv\n闸\tasj\n蛊\tcam\n褪\ttiu\n鳌\taphw\n彷\twlf\n翎\tjkz\n婪\teeb\n衅\ttah\n猖\tmoo\n捶\tull\n伎\tjci\n梧\tewd\n洼\tkgg\n吆\tdiy\n椒\teyf\n瞳\tqid\n勺\tnid\n卉\tnlc\n竺\trme\n嗖\tdpg\n淀\tkwt\n烘\tclh\n痪\taxmm\n炊\tceq\n枭\txem\n髦\tpev\n轧\tyae\n矶\tmoj\n钳\tzzg\n稠\txmg\n戊\tnuu\n羁\tytn\n璋\tnxn\n咪\tdpm\n甭\tcty\n颌\tjdw\n铝\tzdd\n谒\tson\n麾\tzvm\n驭\tnry\n俨\tjfc\n侬\tjwt\n疚\taxi\n憔\thuc\n晏\towb\n驮\tnmd\n烙\tcsg\n赃\toxgt\n怅\thpc\n搔\turi\n磋\tmgu\n篡\trqm\n蹙\tnyfp\n毗\tqvv\n瞩\tqct\n笠\tril\n殴\tnbr\n唠\tdlw\n喳\tdeo\n锄\tzfsl\n隧\tthj\n剌\txpd\n憨\taqhh\n菁\tlavy\n狰\tmxb\n桔\tegd\n孵\tbyh\n蝠\tcfd\n袅\txti\n滇\tknq\n疹\taje\n黝\tpis\n汴\tkzy\n缰\tifqf\n酝\tyby\n垢\tgxf\n掣\tqrpu\n琅\tnii\n嘈\tdfyo\n筛\trpf\n谤\tsiw\n曙\toyq\n蕾\tltq\n漱\tkxe\n阱\ttqj\n琵\tnnv\n胰\tvmbg\n狒\tmtf\n哽\tdfo\n呸\tdcf\n廿\tln\n睫\tqfb\n蠕\tctl\n吠\tdmq\n筐\trnn\n讪\tsvs\n惺\thol\n汲\tkcj\n赂\tosg\n酣\tyzg\n澈\tkbvh\n滤\tkzh\n徙\twssi\n抡\tujl\n惋\thwl\n漩\tklet\n孰\tghki\n睬\tqye\n哧\tdgc\n椭\tetn\n钵\tzef\n笈\trcj\n茹\tlbd\n褒\ttjd\n蛾\tctu\n啧\tdao\n衲\ttmj\n毡\tvyd\n澎\tkhes\n窖\teqd\n曳\toat\n荧\tlwc\n吝\tvdk\n跄\tpjz\n谛\tsiwr\n淆\tkbnv\n菇\tlbc\n诣\tsvo\n锈\tzxv\n辗\tycl\n穗\txnqh\n惰\thnu\n鲨\tkytw\n柿\tezr\n脓\tvwti\n巅\tvnq\n啄\tdji\n娄\tpbn\n帷\truij\n簧\trnh\n琛\tnwh\n萤\tlwcc\n奄\tmoa\n盎\tmmam\n渭\tkqv\n馒\tqoy\n攘\tutdf\n鸾\tzcx\n忡\thdg\n嫖\tbvf\n蝎\tcon\n虬\tcae\n鹦\toobx\n桅\texx\n贻\tokd\n咀\tdfq\n鞅\ttmm\n翟\tzuiv\n惚\thne\n拈\tuyd\n钊\tzpd\n攒\tuqp\n沌\tkfs\n痊\tajn\n髯\tpem\n烹\tgrc\n豚\tvjs\n咏\tdik\n腑\tvxj\n诘\tsgd\n渎\tknam\n悚\thxs\n撮\tuoq\n磊\tmmm\n觑\tzce\n寅\twfdh\n茸\tlqe\n忱\thwp\n傀\tjag\n亵\ttuk\n匾\tnmic\n弛\tbey\n疙\taea\n雏\txbu\n弼\tbfu\n戍\tnidu\n帛\turj\n缭\timh\n羹\tgcgm\n袄\tttm\n迥\tmdu\n俟\tjko\n躇\tplq\n墩\tgghh\n鸥\tnbx\n痉\taru\n抨\tueh\n阜\ttkn\n禾\txhh\n曝\tool\n乒\ttftp\n壬\ttgs\n伢\tjly\n孚\tyhi\n隅\ttqv\n堑\tytg\n恪\thsg\n槛\tepr\n薯\tlyq\n驹\tngj\n惦\thxy\n怦\theh\n炙\tvch\n恺\thvv\n蒜\tlff\n坍\tgmz\n铠\tzvv\n韶\txpdk\n咔\tdyf\n璧\tcdni\n驸\tnjkc\n霓\ttppe\n嗒\tdlj\n彝\tbpi\n淤\tklj\n抉\tunj\n挛\tzcus\n捎\tuyv\n呱\tdyg\n袱\ttjm\n惘\thmh\n蹑\tpqrr\n糜\tzpm\n蹿\tped\n桀\tlve\n聆\tqjk\n褥\ttfk\n阑\taxh\n貂\tmpdk\n梓\tenx\n蹭\tphr\n俾\tjut\n漪\tkmmz\n矜\titj\n圭\tggt\n漓\tkzb\n穹\tebg\n诃\tszk\n诽\tsrf\n肛\tvug\n蔼\tlso\n蕃\tltp\n鬓\tpew\n辄\tyqa\n恻\thop\n阉\tamo\n崽\tvqh\n刨\tnvp\n瓢\tvfy\n祟\tsmf\n幔\troy\n沽\tkcg\n笋\trbt\n筝\trxb\n滕\tvhhk\n炬\tcnn\n葵\tlhfm\n铎\tzru\n恬\thas\n楷\tevvu\n袒\ttof\n冕\towpe\n纶\tijl\n疡\taaes\n埠\tgtk\n偌\tjln\n蜈\tcdf\n橙\tehz\n涧\tkaor\n煸\tcmi\n瓒\tnqp\n蝙\tcmic\n诲\tsek\n殃\tgmm\n痹\taql\n晖\towyc\n蜷\tchh\n鸳\tlzx\n噶\tdlo\n蘑\tlzm\n鹊\tlox\n碾\tmcl\n珂\tnzk\n芮\tlmj\n茧\tlcc\n羔\tgchy\n靳\tttj\n堰\tgnob\n悻\thgg\n曦\togx\n黏\txjkd\n橄\teaq\n偕\tjvv\n妩\tbdu\n腋\tvzj\n暧\toyw\n涟\tkyu\n拗\tuis\n憧\thidl\n胥\ttvys\n芹\tltj\n俸\tjaiu\n圃\trnf\n薰\tllp\n秧\txmmd\n拌\tuhu\n邯\tzte\n悸\thxh\n锚\tzlqt\n瑙\tnot\n砾\tmby\n癸\thfm\n磐\tirm\n凋\twmg\n溥\tknkc\n嬴\tfdvi\n亟\trdr\n偎\tjqf\n橘\teit\n滢\tklwi\n懵\thly\n绚\tino\n唆\tdkhh\n胺\tvwbn\n嚓\tdwh\n撬\tuvvv\n肴\tbnv\n纂\trqmi\n碉\tmmg\n蹊\tpyi\n忐\tyfh\n楠\tenmg\n钠\tzmj\n笺\trfp\n渲\tkwff\n娼\tboo\n湄\tkcq\n暨\tidof\n翡\trzv\n鳄\twdda\n萃\tlzj\n枷\tesd\n籽\tphi\n骼\tfsg\n韬\tgyp\n潼\tkidl\n祺\tfzh\n笙\trls\n岐\tvci\n悴\thzj\n攥\turqi\n喋\tdlae\n蜕\tchd\n聿\tbvv\n氮\tvcch\n踹\tpvl\n釜\thbzj\n叼\tdaf\n揩\tuvvu\n麓\teex\n嫔\tbwt\n劾\tksl\n辎\tyoq\n翌\tzil\n乓\ttfid\n绯\tirf\n渤\tknws\n俐\tjxp\n粱\tkphp\n腓\tvrf\n撵\tuhhy\n搐\tuziq\n茬\tlngg\n赘\tapho\n龋\tltd\n瘪\taoj\n遽\tzju\n饺\tqab\n怂\tjjh\n屹\tvea\n沥\tkxs\n辕\tygd\n缜\tinq\n睾\ttyg\n讷\tsmj\n蚤\tric\n锭\tzwt\n榨\teew\n瑾\tnld\n蛤\tcjdk\n攫\tuqqr\n捋\tuyk\n骥\tnav\n瓮\thkr\n汾\tkhp\n惴\thvl\n溉\tkidu\n妊\tbtg\n惮\thhq\n锌\tznx\n馀\tqjx\n帧\tryo\n撂\tuqs\n酵\tyqh\n哒\tdmu\n绛\tihv\n冗\twoj\n磺\tmnh\n赈\tofc\n瀚\tknoz\n跤\tpab\n彗\taabj\n顼\tnwy\n簸\trzhr\n雳\ttxs\n愫\thais\n镰\tzxh\n掂\tuxyd\n擘\tcdnu\n谚\tsix\n卤\tyrb\n箍\trunr\n跛\tprp\n筵\trts\n膺\txjuv\n桢\teyo\n皈\tuxry\n渝\tkjv\n漾\tkgi\n铢\tzta\n啜\tdrrr\n耆\tqor\n锵\tzal\n扈\tmdm\n瘩\talj\n阪\ttxr\n萦\tlwi\n囱\ttrh\n暄\towff\n哝\tdwti\n漳\tkxns\n藐\tlmu\n侏\tjta\n栩\tezv\n吮\tdkp\n莞\tlwm\n砚\tmej\n匮\tnco\n涣\tkxm\n潦\tkmhy\n踞\tpcc\n秤\txeh\n浚\tkkh\n惬\thnh\n濮\tkjc\n瘸\tasdj\n琶\tnnmb\n癖\tacdn\n祗\tfbid\n邺\tcte\n杞\tevj\n瞠\tqsgt\n螂\tcii\n烽\tcha\n讹\tsjv\n臆\tvxh\n蜒\tcts\n蜿\tcwl\n沂\tktj\n蹂\tpit\n颍\tvkw\n娠\tbfc\n帚\tbwr\n摒\tuchl\n蟾\tcxx\n遐\tcmn\n蜗\tcdmj\n螭\tczb\n淄\tkoq\n萼\tldda\n馅\tqxp\n苞\tlnv\n诠\tsjn\n谑\tszb\n氖\tvvn\n唧\tdiz\n笆\trmb\n蚩\tsfc\n谥\tska\n燎\tcmhy\n掖\tuzj\n壑\tghrg\n寰\twyft\n馋\tqwpw\n黔\tpja\n竣\tikh\n蹋\tpoz\n骁\tnpf\n榄\tepre\n豢\thhj\n婵\tbhqn\n姗\tbic\n玺\txyn\n饬\tqes\n鹉\tfpsx\n偃\tjnob\n唰\tdcr\n涎\tktsu\n呗\tdob\n麒\txzh\n跷\tppf\n嗷\tdap\n丕\tcfi\n鼾\toqle\n阖\tagka\n撅\tuxh\n渍\tkao\n僭\tjddo\n臧\tnqc\n炖\tcfsc\n噎\tdgw\n筱\trjg\n缤\tiwth\n烬\tcci\n瑕\tncm\n卯\tbmm\n酪\tysg\n簌\trxe\n漉\tkxl\n戌\tnfi\n汶\tkvw\n轲\tyzk\n汛\tkans\n峦\tzcv\n褶\ttzu\n铐\tzqf\n盅\tdga\n胭\tvrm\n踵\tpld\n晾\togyx\n苯\tlef\n恙\tghx\n飒\tiob\n镯\tzyn\n藕\tlaq\n筏\trjp\n萱\tlwff\n奂\txmm\n芥\tljp\n叁\tkmt\n憬\thog\n媛\tbyf\n碘\tmihb\n嗳\tdyw\n彤\tmze\n邙\tftew\n兖\takp\n酉\tyy\n茗\tlldk\n沓\tkors\n嗟\tdgu\n闾\taddk\n挝\tuku\n癞\taxx\n坯\tgcf\n伫\tjwf\n雒\tsuig\n鹫\tgyo\n荃\tljn\n锺\tzldl\n挎\tumm\n铿\tzpr\n飙\tmmmb\n蟋\tctph\n谧\tsht\n亘\tfof\n猥\tmqf\n惆\thmgd\n刽\tjbp\n媲\tbtr\n氟\tvtf\n湍\tkvl\n蔷\tlghd\n璐\tnps\n嗫\tdqr\n稷\txqh\n缄\tinf\n垛\tgoe\n瘢\tair\n蕙\tlnqh\n浒\tkse\n甥\tlqsl\n迳\truu\n睑\tqjkf\n甬\tkty\n逵\tghg\n祯\tfyob\n鳖\tfhw\n汞\tuksg\n恣\tweh\n诰\tsqd\n旌\tlel\n珑\tntl\n梆\teat\n捺\tumf\n斡\tnonj\n湮\tkvg\n螅\tcohx\n喏\tdln\n胯\tvmma\n蘸\tlyuc\n螃\tciwl\n荔\tlsss\n蚌\tcaf\n瀛\tkfd\n蟠\tctpq\n踊\tpkt\n痔\tagk\n皿\tamm\n贰\tpmo\n隼\tuns\n芷\tlsi\n荼\tljx\n傩\tjru\n徵\twvfn\n泯\tkdm\n蓟\tlwp\n簪\trdd\n骰\tfrs\n脐\tvqq\n飓\tobq\n孺\thtle\n辘\tyxl\n佚\tjth\n羚\tgjk\n漕\tkfy\n腱\tvbu\n晁\topw\n皋\tumn\n抠\tunb\n桦\tejvn\n髅\tfpb\n楔\teap\n谄\tsxp\n赡\toxx\n唷\tdbv\n寐\twaa\n椰\teqt\n蜻\tcav\n疣\taoy\n嘭\tdhe\n蟀\tczin\n篓\trpb\n崆\tveug\n泵\tmks\n蹒\tplm\n搪\tuxbd\n玷\tnyd\n卞\tzyb\n噼\tdcd\n镀\tzxl\n鑫\tzzz\n琏\tnyu\n娓\tbcv\n杳\teor\n犊\tqna\n昙\toby\n粿\tpqe\n闰\tanw\n篆\trbj\n踝\tpqem\n呷\tdsj\n熹\thdc\n缨\tioo\n蓓\tljid\n璞\tncg\n坂\tgxr\n钾\tzsj\n鹞\tyax\n剁\toep\n谩\tsoy\n瞑\tqwo\n佼\tjab\n噤\tdeef\n戾\tmmq\n汕\tkvs\n赓\txbjo\n馍\tqlo\n嗥\tdum\n煜\tcoi\n谙\tsxy\n塾\tghkg\n茉\tlfe\n髻\tpegd\n泗\tkys\n秸\txgd\n袂\ttnj\n贲\tnlo\n湃\tkuf\n迢\tpdu\n哞\tdkq\n淞\tkeh\n潞\tkps\n煦\togc\n婊\tbat\n耷\tmqe\n掰\tuhpu\n拄\tuin\n涸\tkrc\n鳃\twqhx\n盂\tfna\n傣\tjaik\n虱\tatc\n羲\tgxfp\n喙\tdbj\n欤\tfafe\n麝\txzkc\n撸\tuwo\n徇\twno\n匝\tnrjk\n痞\tacd\n咂\tdnr\n豺\tmnt\n躏\tpla\n锷\tzdda\n夙\togd\n纣\tikc\n瞌\tqgka\n窿\teth\n诙\tsnc\n喟\tdqv\n荪\tlhy\n匍\tnnf\n啬\tghrd\n坷\tgzk\n殡\tgwth\n潺\tkch\n岌\tvcj\n缮\tighd\n澹\tkxx\n蛰\tukic\n嗬\tdljz\n斛\txtj\n锏\tzao\n恫\thmf\n蟆\tclom\n町\tqadt\n骠\tnvf\n唏\tdbn\n绶\tiyw\n卅\tlss\n橹\tewo\n钡\tzob\n淇\tkzhb\n胱\tvmg\n螳\tcsgt\n皑\tuvvj\n谀\tspj\n鸯\tmmx\n跻\tpqq\n擞\tupbh\n椿\teaio\n嘤\tdoob\n篝\trqf\n厩\txid\n嵇\txovs\n腆\tvih\n蛀\tcinw\n邬\txte\n恚\tgghx\n夔\thos\n辍\tyrrr\n咻\tdje\n涓\tkdv\n箓\trbk\n轶\tyth\n跚\tpic\n邃\tehj\n嚏\tdnwt\n曜\tozu\n翱\tumnz\n珥\tnqe\n瞰\tqaq\n岱\tjpv\n臼\tpjj\n眈\tqwpe\n葆\tljd\n猓\tmqem\n籁\trxx\n苻\tljkc\n谆\tsgh\n扉\tmrf\n槌\tetk\n箕\trzh\n蔗\tlxl\n啾\tdxc\n腼\tvbm\n荤\tlwy\n剽\tvfp\n泾\tkrug\n淖\tkyo\n酮\tymf\n锢\tzrc\n雹\ttnvs\n骧\tntd\n龛\tjdt\n恿\tkthx\n裆\ttybj\n獗\tmxh\n鹳\tlddx\n牒\tala\n樟\texn\n焙\tcidk\n痣\tagh\n檬\telw\n疵\tasv\n熠\tczu\n睽\tqhf\n泞\tkwa\n蚯\tctf\n蛹\tckt\n畹\tqwl\n淬\tkzjn\n怆\thjz\n罹\tyhu\n飕\tobp\n浣\tkwm\n桧\tejb\n琥\tnzh\n銮\tzcz\n鋆\tgnwz\n啐\tdzjn\n宸\twfc\n沣\tkaf\n睐\tqah\n翦\thvpz\n颚\tddmw\n沅\tkmp\n镐\tzgg\n斓\tvax\n璜\tnnh\n祛\tfgk\n娲\tbdm\n庖\txnv\n咫\tcidh\n荟\tljb\n僮\tjidl\n昵\tocv\n皎\tuab\n氦\tvkh\n罔\tmhf\n闩\tafim\n槟\tewt\n溟\tkwoa\n缥\tivf\n楣\tecq\n蛔\tcrd\n靥\txmb\n黜\tpsm\n囔\tdnd\n骋\tndf\n忻\thtj\n榈\tead\n阂\takh\n妍\tbfl\n橇\tevvv\n瘠\taww\n灸\txic\n噫\tdxh\n杵\teen\n镁\tzgm\n儡\tjqqq\n耘\taby\n腌\tvmo\n觐\tldae\n醮\tyuc\n焊\tcoe\n醺\tylp\n黠\tpgd\n侗\tjmf\n椋\tegyx\n舀\typj\n窠\teqem\n裨\ttut\n摞\tuqi\n瘴\taxns\n癣\tawgy\n耙\tambl\n芍\tlni\n捱\tuxgg\n栾\tzcem\n榕\tewh\n龈\tlig\n痘\tazd\n睢\tqui\n绾\tiwk\n擢\tuzu\n鬃\tpewf\n弈\tzcl\n獠\tmmh\n蛆\tcfq\n谗\tswp\n铛\tzybj\n倌\tjwk\n邝\txteg\n圪\tgea\n痫\taaem\n啷\tdiit\n邕\todm\n酰\tyqp\n晔\tojv\n渥\tkcy\n佗\tjwv\n睨\tqpp\n蜥\tcet\n孛\tnwhi\n郸\thqnt\n镌\tzuv\n鳗\twoyr\n痢\taxpd\n秆\txeg\n嚅\tdtle\n胄\tdvy\n郅\tyte\n蝌\tcxj\n瘀\taljw\n觊\tvve\n蚪\tcjd\n暹\touu\n锹\tzxc\n饴\tqkd\n穑\txghd\n糯\tptl\n哂\tdvx\n掸\tuhq\n蛐\tcyq\n岖\tvnbi\n蜓\tctg\n疟\tabj\n蹩\tfhpu\n莓\tlek\n胛\tvsj\n谌\tszh\n岬\tvsjs\n囤\trfs\n嬷\tbzt\n糠\tpxbk\n汩\tkorg\n酗\tybm\n洵\tknor\n蚣\tchk\n氪\tvcp\n蜃\tfcc\n鳎\twoz\n孪\tzchi\n弑\tbepu\n棣\tebk\n舐\tabs\n峪\tvhg\n疱\tanv\n炀\tcaes\n箩\tryl\n阚\taaq\n龇\tlsv\n镂\tzpb\n咣\tdmg\n徨\twun\n盹\tqfs\n袤\ttit\n郢\tdnt\n嗐\tdwad\n砥\tmbid\n荚\tlhhb\n蚓\tcbg\n偈\tjon\n氐\tbid\n咛\tdwa\n愠\thoa\n鄱\ttpqt\n怏\thmm\n淙\tkwfs\n琊\tnlt\n苓\tljks\n馁\tqybn\n柠\tewad\n涝\tklw\n鹄\tqdx\n濑\tkxxo\n胫\tvrug\n芋\tlfn\n璀\tnvu\n隽\tuvni\n弋\tpi\n燮\tsccr\n泓\tkbk\n窈\teis\n畿\tiip\n衢\tpqqu\n鹭\tpsx\n瑁\tnoq\n碴\tmeo\n筠\trgn\n韭\trfi\n涿\tkji\n龌\tlcy\n婀\tbtz\n戛\tfop\n臊\tvdd\n宓\twhtp\n蟑\tcxns\n豌\tzwl\n骊\tnfv\n宕\twms\n鲫\twiz\n鲇\twyd\n煊\tcwf\n罂\tooa\n娩\tbwp\n铬\tzsg\n蒯\tlvv\n褴\ttpra\n谔\tsdd\n骈\tnhl\n洄\tkrd\n镣\tzmh\n崂\tvlws\n箴\trnfd\n妲\tbof\n檄\teul\n沏\tkrpd\n啵\tdkr\n汐\tklx\n疽\tafq\n纫\tipi\n蒿\tlgg\n鹗\tddmx\n俦\tjak\n殒\tgdo\n魇\txma\n幺\tiy\n榭\tezkc\n蓿\tlwj\n粼\tplv\n绺\tihy\n圩\tgfn\n忑\tfyh\n琬\tnwl\n诋\tsbi\n迩\txyu\n藓\tlwg\n靼\ttofi\n俚\tjdl\n殁\tgrs\n饕\tdfaq\n仄\txjr\n牍\tana\n蠡\tbjc\n诳\tsmn\n霭\ttso\n懋\teith\n掬\tunp\n熵\tcim\n濂\tkxh\n锰\tzham\n婕\tbfb\n袈\tsdt\n镭\tztq\n皙\tetu\n咝\tdii\n斫\tmtj\n褛\ttpb\n臃\tvzi\n娑\tkytb\n匐\tnfdq\n埂\tgfo\n柑\tezg\n榷\tewu\n歆\txeq\n噙\tdjzv\n犒\tqgg\n馐\tqga\n孢\thnv\n蓑\tltdf\n郦\tfvvt\n霾\ttmdl\n鸵\txwv\n叵\tndk\n氲\tvoa\n鲲\twov\n祚\tfwa\n鹑\tghxn\n岷\tvdm\n滦\tkzce\n啮\tdlc\n纭\tiby\n恸\thbs\n艮\tig\n娉\tbdfa\n扪\tuam\n诿\tsxb\n滂\tkiw\n讫\tsea\n弁\tklc\n蛭\tcyic\n谡\tsqh\n砧\tmyd\n莘\tlnx\n啻\tiwrd\n舫\tilfo\n荨\tlbk\n辇\thhy\n雉\toui\n俑\tjkty\n冽\twgp\n椽\tebj\n泸\tkyc\n钛\tzmi\n榔\teii\n蕨\tlxhe\n诒\tskd\n覃\tvon\n揆\tuhfm\n蟮\tcgh\n烯\tcbn\n翊\tizv\n獾\tmld\n姣\tbab\n憩\taoh\n摈\tuwt\n缙\tifc\n鲈\twycs\n嘹\tdmh\n钚\tzcbj\n孀\tbte\n洌\tkgp\n纾\tiiv\n饨\tqfsc\n剐\tdmjp\n浜\tkthb\n瘁\tazjn\n祐\tfnd\n缇\tiot\n怵\thei\n烷\tcwm\n隍\ttun\n嶙\tvpl\n粲\tgrpm\n沱\tkwvb\n篙\trgg\n挞\tumu\n猕\tmbx\n蹶\tpxh\n摁\turm\n赊\tojf\n涮\tkcr\n铡\tzop\n噘\tdxhe\n刍\txbjd\n鹂\tfvvx\n牦\tqvm\n狻\tmkh\n鲑\twggt\n耄\tqvml\n遛\tbqu\n垠\tgig\n蝮\tceo\n坳\tgis\n妫\tbis\n樽\tehy\n茁\tlsm\n呓\tdla\n奁\tmnb\n懔\thzr\n箔\trku\n钜\tznn\n濡\tktle\n莒\tldd\n阡\ttlq\n慵\thxbt\n犄\tqmzk\n蚱\tcwa\n谘\tswe\n佞\tjmb\n铤\tztg\n颧\tlddw\n熨\tcfkc\n纨\tiki\n剜\twlzp\n殓\tgjkf\n槁\tegg\n邂\txtpu\n骛\tith\n唑\tdjj\n庑\txdu\n瞭\tqmh\n诤\tsxbv\n辏\tyaim\n祉\tfsis\n犟\tbdcq\n猬\tmqv\n夯\tmsl\n妪\tbnb\n胪\tvyc\n钰\tznid\n馕\tqnd\n恁\tjtgh\n荩\tlciw\n榘\tonne\n罄\tgcra\n谝\tsmi\n仨\tjts\n僖\tjhd\n闱\tagw\n靓\tave\n榛\teaix\n簦\trhz\n宥\twnvy\n潢\tknh\n饯\tqfp\n涔\tkvj\n寮\twmh\n忤\then\n泅\tkrj\n隗\ttag\n墉\tgxbt\n胴\tvmf\n蝈\tcrn\n砷\tmog\n珞\tnsgw\n鳅\twxc\n獭\tmxx\n荥\tlwks\n觥\txtm\n鏖\txzjl\n嘁\tdny\n柚\tedy\n菠\tlkr\n倜\tjmg\n掇\turr\n氤\tvrmd\n淅\tket\n蛳\tcpfr\n酚\tyhp\n峒\tvmfd\n涞\tkah\n繇\tyat\n俅\tjfk\n嗑\tdgk\n烨\tcjv\n燔\tctp\n邋\topu\n咿\tdjbt\n旖\tlem\n镍\tzoem\n霁\ttqq\n椤\teylx\n蚜\tcly\n辔\tiyi\n鼐\tvqa\n咤\tdwtr\n峋\tvno\n拮\tugd\n踮\tpxyd\n酯\tyvo\n壹\tgwz\n庋\txci\n癜\tacl\n饽\tqnw\n搽\tulje\n蛎\tcxf\n迨\tkdu\n偻\tjpb\n槊\thsve\n谶\tsjjf\n赳\tpij\n龊\tlpu\n媾\tbqf\n馄\tqov\n啕\tdna\n嗵\tdkt\n墒\tgim\n恽\thwy\n琰\tncch\n铣\tzqp\n嗝\tdng\n飚\tobc\n榀\teddd\n醯\tybo\n儆\tjlg\n哐\tdnn\n遑\tunu\n魑\tazb\n嗲\tdhbl\n枞\tejj\n笞\trkd\n苌\tlpc\n氰\tvav\n馊\tqpg\n橐\tndwe\n妤\tbiv\n燧\tchj\n莅\tlji\n缈\tiqy\n邈\tmupu\n伲\tjcv\n闼\tamu\n庠\txgy\n懑\tklmh\n噔\tdhz\n抟\tuma\n杈\teri\n荻\tlmc\n逅\txfdu\n矾\tmoi\n馑\tqld\n馥\txoe\n凃\twjxh\n劭\tpds\n昕\totj\n昱\toil\n栎\teby\n蔫\tlfs\n呶\tdbr\n镕\tzwh\n庾\txpjr\n柩\tenxi\n殇\tgeae\n汜\tkvss\n迤\teeu\n囿\trnv\n忝\tfmh\n鳝\twghd\n颦\tsswn\n苷\tlzg\n衮\tthk\n镳\tzxch\n飧\tlqs\n忸\thagt\n腴\tvpj\n蠹\tndwc\n琨\tnov\n觎\tjvpe\n谯\tsuc\n囫\trne\n飨\tiqs\n笏\trnes\n鞯\ttln\n凇\twehk\n淼\tkkk\n爻\tbbi\n蜚\trcc\n郏\thht\n饪\tqtg\n鋈\tktmz\n蔺\tlau\n诜\tsqp\n鸢\tpxn\n觯\txthn\n铳\tzbp\n呲\tdsvb\n湎\tkbm\n麋\txpm\n竦\tixs\n奘\tagm\n肽\tvmi\n芪\tlbs\n粑\tpmb\n缫\tioqe\n膘\tvvf\n臾\tpjr\n苫\tlyd\n荭\tliu\n阗\tanqh\n趔\tpgp\n俪\tjfv\n滓\tkwn\n蜇\tutc\n嘣\tdvvv\n呦\tdis\n栉\telz\n菟\tlwt\n藜\tlxpk\n佘\tjfs\n濠\tkgj\n稹\txnqh\n佝\tjgj\n孱\tchhh\n枸\tegj\n疸\taof\n膑\tvwth\n虻\tcfw\n箝\truz\n铩\tzbe\n霏\ttrf\n濯\tkzu\n蝼\tcpbn\n乩\tyda\n赝\txjuo\n祜\tfcgs\n霰\ttlv\n盥\tpka\n谖\tsyfr\n锨\tzteq\n徭\twya\n肓\tfvy\n蛉\tcjk\n倨\tjcc\n硼\tmvv\n趺\tphf\n鱿\twoy\n埽\tgbw\n绉\tixb\n娣\tbht\n楹\tevr\n洹\tkfo\n虢\tykz\n詈\tysy\n诨\tswy\n锲\tzap\n铰\tzab\n泱\tkmm\n绻\tihh\n巽\tvvl\n晟\tonae\n桎\teyim\n淦\tkzj\n芩\tlja\n锃\tzdn\n呤\tdjks\n浔\tkbkc\n澧\tkyz\n羿\tzlc\n酆\tvaa\n戡\tzhap\n蜴\tcone\n渚\tkqo\n诮\tsyv\n郧\tdot\n犷\tmxgq\n魃\tanr\n崴\tvnfb\n砺\tmxf\n纥\tiea\n摺\tuzub\n讣\tsyb\n谪\tsim\n颀\ttwy\n垩\tfcgt\n岫\tvdy\n绦\tihe\n馗\tkho\n搡\turre\n璨\tngr\n遨\taphu\n铂\tzub\n眦\tqsv\n卟\tdyb\n泷\tktl\n轱\tycg\n铨\tzjn\n锟\tzov\n髭\tpesv\n纰\tivvb\n蹴\tpgyo\n姘\tbhl\n榉\tekhu\n粽\tpwfs\n赭\tgcq\n罅\tazt\n陂\ttrp\n诟\tsxf\n龅\tlnvs\n伉\tjzo\n姹\tbwtr\n撷\tugdw\n瘙\tari\n鸬\tycx\n秣\txfe\n笥\traf\n翳\tnorz\n螨\tclm\n诓\tsnnw\n晗\toja\n碣\tmon\n箸\trqo\n翕\tjdzv\n鹌\tmoax\n痿\taxb\n赧\tgcz\n咭\tdgd\n舛\tlvk\n襁\ttbd\n诌\tsxbj\n跸\tpvvn\n蹇\twqhp\n汨\tkorm\n砭\tmtr\n怼\trkh\n涪\tkidk\n薨\tlyw\n鲱\twrfv\n愎\theo\n揄\tujv\n窕\tepww\n羯\tgon\n醴\tyyz\n粕\tpub\n茯\tljm\n鍪\tithz\n钍\tzgt\n鹘\tfxn\n梏\teqdk\n煨\tcqft\n锉\tzjjg\n戕\tapg\n聒\tqas\n誊\thhs\n陲\ttll\n髡\tpef\n郓\twyt\n鄢\tfsft\n闳\tank\n阕\tahf\n湟\tkun\n畦\tqggt\n竑\tinks\n肱\tvnks\n碜\tmkm\n艄\tiyv\n衩\ttrid\n钨\tzxu\n鲟\twbk\n咩\tdgy\n艿\tlvn\n吒\tdtr\n噌\tdhr\n峥\tvxb\n徜\twss\n鸨\tvnx\n刈\tbpd\n珏\tnni\n逡\tkhhu\n臬\toem\n褡\ttlj\n麂\txojl\n媪\tboa\n玮\tngw\n酢\tywa\n阈\tapdf\n夤\tlwfh\n孳\thiih\n钹\tznr\n馏\tqbq\n鸷\tukix\n矍\tqqur\n裱\ttat\n哙\tdjb\n幄\trcy\n潍\tkiu\n讴\tsnb\n砒\tmvvb\n呔\tdmi\n薏\tlxh\n谲\tsit\n驷\tnys\n沒\tkpry\n芊\tllq\n苁\tljj\n喑\tdxy\n闿\tavvj\n俎\tjjfq\n阏\taljw\n骞\twqhn\n猷\thymq\n痨\talw\n肄\tvobv\n芨\tlcj\n弭\tbqe\n歙\tjdze\n氅\tshv\n煲\tjdec\n爰\tyfn\n璎\tnoo\n篾\tryn\n铉\tzzi\n厝\txlo\n楫\tedq\n牝\tqvb\n稗\txut\n衾\tjat\n豕\tjs\n钴\tzcg\n徕\twah\n掴\turn\n桠\tefc\n烩\tcjb\n骅\tnjvn\n啖\tdcch\n峁\tvbms\n怩\thcv\n樾\tepn\n赍\tnjj\n圻\tgtj\n碛\tmao\n馔\tqvvh\n嵘\tvlwe\n揿\tuze\n楂\teeof\n茏\tltl\n裟\tkytt\n趄\tpfqz\n鹬\titm\n囡\trbn\n嗪\tdaix\n殚\tghqn\n潸\tkeev\n甑\thryr\n逖\tmcu\n錾\tytz\n孬\tcbh\n逋\tnuc\n痤\tajj\n佥\tjkfi\n炜\tcgw\n傥\tjsp\n苣\tlnnk\n阄\tawg\n嵬\tvag\n嶂\tvxn\n滟\tkaxm\n瓯\tnbrw\n胝\tvbi\n揶\tuqt\n昶\tiko\n杲\toem\n砣\tmwv\n绌\tism\n莆\tlnf\n酊\tyad\n抻\tuogs\n渌\tkbks\n鬣\tpeo\n唁\tdsy\n媸\tbsf\n帼\trrn\n蠼\tcqqr\n铱\tzti\n湫\tkxc\n發\thbr\n螓\tcai\n黍\txjks\n遴\tplvu\n魍\tamh\n踅\tutpu\n颏\tkwyh\n鸩\twpx\n鼹\tpow\n勖\toqs\n洱\tkqe\n粳\tpfo\n舢\tivs\n薮\tlpbh\n鎏\tkboz\n镏\tzbq\n沤\tknb\n猗\tmmz\n骓\tnui\n啶\tdwt\n嬗\tbzr\n獐\tmxn\n砝\tmgk\n竽\trfn\n蚝\tcvm\n鄯\tghdt\n闶\tazo\n鲛\twabi\n恂\thno\n悌\thhtf\n羸\tfdvg\n苋\tlej\n醛\tylj\n颢\togyw\n掼\tukob\n棂\tebc\n琮\tnwf\n缢\tika\n珈\tnsd\n硎\tmflp\n耦\taqv\n耨\tafk\n螫\tgchc\n酩\tyld\n掾\tubjs\n痂\tasd\n觞\txtee\n骶\tfbid\n淝\tkvm\n钺\tznu\n峤\tvtm\n硒\tmvx\n舸\tizk\n疥\tajpd\n脍\tvjb\n轭\tyxz\n橛\texhe\n蚨\tchf\n蜊\tcxp\n螟\tcwo\n嗄\tdfoh\n榫\teun\n炔\tcnj\n痈\taty\n笤\trpdk\n噱\tdzjs\n壅\tziug\n猊\tmpp\n笕\treju\n讵\tsnn\n槿\teld\n礴\tmlk\n钤\tzja\n阆\taii\n俣\tjdf\n毂\tgwy\n荞\tltm\n矸\tmeg\n锂\tzdl\n阋\tappe\n龃\tlfq\n掮\tumv\n穰\txtd\n苡\tlvjr\n菏\tlkzk\n涫\tkwk\n磬\tgcrm\n绡\tiyvy\n轸\tyje\n焓\tcja\n蓖\tltr\n鲧\twtis\n浃\tkhhb\n玖\tnxi\n瓤\ttddy\n苜\tlqm\n齑\tqrf\n蒺\tlao\n謇\twqhs\n钏\tzoc\n鹜\tithx\n杼\teiv\n舂\taip\n鲂\twlfv\n乜\taaee\n烃\tcru\n莜\tljg\n恹\thxm\n玳\tnjp\n缗\tido\n笫\trtf\n葭\tlcm\n仃\tjadr\n圜\tryf\n氩\tvfc\n蟪\tcnq\n逶\txbuc\n锴\tzvvu\n頁\twyy\n龉\tlwdk\n俳\tjrf\n匦\tnyk\n啭\tdym\n愆\tpkh\n畲\tjfqt\n窣\tezj\n姝\tbta\n屐\tcwc\n瑭\tnxbd\n稔\txja\n笮\trwa\n葺\tldq\n崧\tveh\n赜\tqao\n岢\tvzk\n挈\tapu\n潆\tklwi\n焱\tccch\n菀\tlwl\n郯\tcct\n姒\tbvjr\n槭\teny\n靛\tavwt\n烊\tcgy\n箐\trav\n魉\taml\n牯\tqcg\n蛴\tcqq\n衽\tttgs\n褓\ttjde\n诖\tsgg\n帑\tbrr\n泠\tkjk\n茑\tlxnc\n殛\tgrd\n芾\tlfr\n诂\tscg\n诹\tsqr\n毖\tvvh\n炷\tcin\n蛩\tuoic\n谠\tssp\n忾\thvq\n碇\tmwt\n郛\tyht\n颛\tvlwy\n刎\tnep\n戬\tfcop\n曷\tonfw\n柞\tewa\n樯\teghd\n蚴\tcis\n妗\tbja\n窸\tetp\n饧\tqae\n唳\tdmmq\n溴\tkom\n菖\tloo\n镉\tzng\n鹧\txlcx\n婺\tithb\n岘\tvej\n灏\tkogw\n缂\titg\n蛞\tcas\n饔\tziuq\n鸪\tcxn\n吡\tdvv\n崮\tvrc\n枰\teeh\n磔\tmlv\n蠖\tclu\n醚\typuc\n旎\tlec\n氚\tvoc\n睥\tqut\n蛄\tccgc\n邳\tcft\n阒\taqm\n鬈\tpeh\n凫\txojn\n旮\tkorj\n犍\tqbu\n缟\tigg\n蘅\tlpw\n蠲\tkay\n鞣\ttite\n焖\tcah\n缦\tioy\n鲆\twehb\n灞\tktt\n豬\tjqo\n踽\tptd\n遢\tozuc\n鼋\tmpdm\n缁\tioq\n趿\tpcj\n钿\tzqtj\n颞\tqrrw\n鲶\twja\n愍\tdhh\n槎\tegu\n狎\tmsj\n缛\tifk\n娌\tbdl\n膻\tvzrf\n茱\tlta\n遒\thyuc\n郴\teete\n镢\tzxhe\n镫\tzhz\n髋\tfwl\n浠\tkbnr\n瘛\taap\n碚\tmidk\n禳\tftd\n羟\tgru\n臁\tvxhc\n蹼\tpcg\n骜\taphn\n佻\tjpw\n枋\telf\n苕\tlpd\n虼\tcea\n醪\tyzje\n黩\tpna\n劬\tgsl\n挲\tkytu\n莠\tlxv\n鄣\txnt\n餍\txmqs\n芗\tlix\n葩\tlum\n娆\tbpf\n洙\tkta\n髁\tfqe\n鲎\tkww\n鲢\twyu\n祇\tfbs\n绀\tizg\n芎\tlbg\n讦\tseg\n铵\tzwb\n哔\tdvvn\n纡\tifn\n胍\tvyg\n勐\thasl\n嫠\tahxb\n笳\trsd\n糁\tpkme\n芫\tlmp\n阍\tabo\n跏\tpsd\n鬻\tbpbn\n鳏\twyk\n鳕\twtb\n墀\tgck\n帏\trgwj\n廪\txzr\n擀\tuno\n狷\tmdv\n蟊\titc\n佰\tjfu\n厣\txms\n嫱\tbgh\n幹\tnone\n彀\tgwf\n韪\totg\n屙\tctz\n睇\tqht\n芏\tlgt\n蠓\tclw\n郗\tbnrt\n嘧\tdwhv\n坨\tgwv\n垭\tgfc\n聩\tqcob\n菸\tllj\n裰\ttrr\n钒\tzoi\n铆\tzbm\n饫\tqtmd\n鹚\thiix\n龆\tlpdk\n桁\tepx\n濉\tkqu\n芄\tlki\n藿\tltu\n仞\tjpid\n洮\tkpw\n缬\tigdw\n褫\ttxz\n鏊\taphz\n饩\tqvq\n仟\tjlq\n侩\tjjb\n嘞\tdts\n眇\tqyt\n绔\timm\n腚\tvwt\n菅\tlwk\n萸\tlpj\n踔\tpyo\n妯\tbdy\n蚧\tcjp\n垅\tgtl\n杷\temb\n莴\tldmj\n诔\tsal\n镒\tzka\n鞫\ttns\n勰\tsss\n囟\ttrb\n怄\thnb\n枇\tevvb\n溧\tkve\n澶\tkzr\n绱\tiss\n锒\tzii\n嘌\tdvf\n掛\tuggy\n擤\tuoql\n矽\tmlx\n篑\trco\n嵊\tvxa\n枳\tedh\n珩\tnpx\n痼\tarc\n笾\trsu\n袢\tthus\n逄\thvu\n鸹\taxn\n呋\tdhf\n撺\tued\n煅\tcuf\n芡\tleq\n讧\tsug\n贽\tukio\n锶\tzqh\n黾\tdmm\n幂\twom\n樗\tetma\n瞽\thcq\n砉\tams\n縻\tzis\n蚋\tcmj\n蜍\tcjx\n跆\tpkd\n亳\tgtr\n囵\trjl\n怫\thtfx\n桉\tewb\n祢\tfxy\n阌\tayw\n虺\tfpc\n傈\tjve\n囹\trjks\n旯\tokj\n肼\tvqj\n腭\tvdda\n魈\tayv\n卮\txfz\n忪\thhk\n朐\tvgj\n滁\tktjx\n笪\trof\n簟\trvo\n蜉\tcyh\n衿\ttja\n侔\tjkq\n堀\tgcsm\n睚\tqxg\n箧\trnhh\n荛\tlpf\n裢\ttyu\n貉\tmsg\n趸\tfpp\n镊\tzqr\n闫\tats\n侪\tjqq\n悒\thdm\n汊\tkri\n泫\tkzi\n笸\trnd\n雎\tfui\n鳟\twhy\n榧\tenr\n獒\taphm\n跎\tpwvb\n阃\tare\n黢\tpkhh\n喁\tdqvr\n枥\texs\n渑\tkdms\n牖\tamn\n佤\tjrw\n嗍\tdhs\n庥\txje\n眙\tqkdk\n筮\truj\n缶\taff\n餮\tgjeq\n嗉\tdai\n堋\tgvv\n夥\tqel\n峄\tvrus\n拊\tujkc\n昀\tonwb\n浯\tkwd\n糅\tpite\n綦\tzhi\n罴\tygkc\n镛\tzxbt\n馓\tqlv\n驽\tbrn\n倬\tjyon\n唿\tdneh\n柘\tems\n蜢\tcham\n螈\tcxu\n佔\tjyd\n柢\tebi\n茴\tlrd\n蟛\tche\n鸱\tbix\n冼\twqpe\n嘏\tccm\n堇\tldaf\n岿\tvpb\n栀\texf\n氘\tvpd\n渫\tklae\n瘅\tahqn\n硌\tmsgs\n窭\tepbn\n箅\trqlc\n翀\tzdgs\n腈\tvavy\n苎\tlwfi\n鲐\twkdk\n咴\tdnc\n啫\tdqor\n寤\twaw\n搿\tujdu\n毽\tvbuy\n泮\tkhus\n秕\txvvb\n蚍\tcvvb\n袷\ttjdk\n裾\ttcc\n跬\tpggt\n醢\tynd\n係\tjtis\n倥\tjeu\n珐\tngk\n瓞\tythf\n碓\tmuis\n笊\trya\n舻\tiyc\n跞\tpby\n跹\tplu\n髂\tfws\n鹕\tcvx\n楮\teqo\n膈\tvng\n郃\tjdte\n铄\tzby\n旃\tlemz\n矬\tojj\n砩\tmtf\n艏\tiho\n苴\tlfqc\n荏\tljt\n螯\taphc\n圮\tgvj\n帙\trth\n旆\tlefr\n桡\tepf\n溆\tkjxr\n潴\tkmqo\n瘘\tapb\n缒\titk\n芰\tlci\n诎\tssm\n锑\tzhtf\n椴\teufr\n苄\tlzy\n陟\ttss\n雙\tuur\n刖\tvpdy\n啁\tdmgd\n悭\thpr\n東\teorm\n熘\tcbq\n锕\tztz\n疝\tavs\n莸\tlmo\n雠\tsuu\n鹩\tmho\n嗾\tdle\n稞\txqe\n蛱\tchhb\n赅\tokh\n鲋\twjkc\n匏\tmmav\n崤\tvbn\n怙\thcg\n砀\tmaes\n蠊\tcxh\n裣\ttjkf\n鹆\thxn\n鼬\tpdy\n炝\tcjz\n疖\tazjb\n硷\tmjk\n籴\tjpm\n芟\tlrs\n愀\thxc\n沆\tkzo\n痍\tambg\n硪\tmtu\n苤\tlcfi\n蔻\tlwmh\n蜮\tcpd\n蹉\tpgu\n鳊\twmi\n僳\tjvpm\n嗌\tdka\n崃\tvah\n崾\tvvbn\n薜\tlcd\n跗\tpjk\n韫\tgoa\n卣\tyrn\n浞\tkpu\n猢\tmcv\n獯\tmlp\n瘿\taoob\n艉\ticv\n訇\tnsy\n踯\tphm\n醍\tyot\n雱\ttlfv\n僦\tjgyo\n嫒\tbyw\n畛\tqje\n硐\tmmf\n缯\tihr\n胨\tvry\n鄄\tvgte\n锸\tzlp\n佶\tjgd\n埙\tgdob\n嬖\tcdnb\n尕\tvyx\n徉\twgyc\n怛\thof\n槲\textj\n獬\tmxtq\n脲\tvck\n鞴\ttlt\n鼍\tddq\n乇\ttrq\n噻\tdwq\n婧\tbav\n嵴\tvww\n涑\tkxs\n缃\tieq\n谰\tsax\n粜\tsmp\n铧\tzjvn\n晷\tohy\n狯\tmjb\n狲\tmhy\n畈\tqxr\n笱\trgj\n逦\tfvvu\n钪\tzzo\n雲\ttby\n圄\trwd\n榇\teie\n焐\tcwd\n肫\tvfsc\n膂\tletv\n鲅\twnr\n凼\tkmk\n珲\tnwyc\n锛\tzmn\n伧\tjjz\n劢\tfpsl\n昴\tobm\n猱\tmit\n癯\taqq\n盱\tqfn\n觳\tgwfx\n鲮\twghh\n宄\twkj\n椁\teghi\n笄\trfl\n伥\tjpc\n厍\txycc\n砻\ttms\n荠\tlqq\n蛘\tcgyc\n塬\tgxuy\n挹\tudmb\n菽\tlyf\n葉\tlla\n轳\tyyc\n鹨\tzjex\n亓\tmpd\n倮\tjqem\n儋\tjxx\n捌\tudsp\n氡\tvhw\n胗\tvje\n钼\tzqm\n锆\tzqd\n鹁\tnwhx\n嚯\tdtui\n郾\tnob\n铖\tzna\n鞒\tttmp\n鲠\twfob\n僅\tjld\n焯\tcyo\n锗\tzqo\n陉\ttru\n隳\ttnuh\n麪\tejja\n嘬\tdoq\n杓\teni\n枵\tedf\n畚\tkmq\n盍\tgka\n硗\tmpfp\n肟\tvma\n虿\tfpcc\n裥\ttao\n週\tmgdu\n鲰\twqr\n兕\tmfp\n垓\tgkh\n檩\tezrf\n熳\tcoy\n邨\tfst\n鬯\tpmv\n黼\tcfn\n狍\tmnv\n瓠\tmmay\n赀\tsvob\n跣\tpqp\n龀\tlvb\n廠\txsh\n澍\tkhk\n碡\tmak\n缱\tick\n蛑\tckqn\n诶\tsko\n锩\tzhhz\n镧\tzax\n馃\tqqem\n鬟\tpey\n孑\trfil\n嵯\tvgu\n篪\trxz\n绲\tiov\n罘\tycb\n耪\taiw\n茔\tlwgt\n蹚\tpsgt\n鸫\tryxn\n聃\tqmg\n谇\tszjn\n呖\tdxs\n慊\thhbc\n戆\txnhh\n炅\toch\n胼\tvhl\n菔\tlvz\n菹\tlkfq\n镞\tzle\n唢\tdyo\n砗\tmyc\n莼\tlif\n萋\tlfb\n辚\typl\n鼙\thcu\n傧\tjwth\n扦\tulqs\n赉\taho\n铍\tzrp\n戗\tjzpg\n摭\tuxl\n楸\texc\n洳\tkbd\n萘\tlmf\n蘩\tleki\n躅\tpyn\n鲀\twfsc\n嶝\tvhz\n羰\tgvn\n胂\tvog\n蘖\tltke\n诼\tsji\n钕\tzbn\n鲡\twfv\n堞\tgla\n啉\tdee\n疃\tqidl\n篁\trun\n蚬\tcej\n钋\tzybp\n钲\tzfsi\n楝\texh\n芤\tlhae\n镆\tzlom\n呒\tddu\n楦\tewff\n畀\tqlc\n痱\tarf\n鸶\tiix\n垡\tjpgt\n缣\tihbc\n阊\taoo\n骱\tfjp\n偾\tjnl\n咁\tdzg\n廛\txdhg\n瓴\tjkr\n脔\tzcmj\n舨\tixr\n葎\tlwb\n迓\tlucy\n崞\tvghi\n畋\tqhpt\n痧\taky\n窳\teyy\n羧\tgkhh\n艽\tlkj\n葑\tlggk\n蛏\tcrg\n蜣\tcga\n醣\tyxb\n钣\tzxr\n颎\tvcw\n髑\tfyn\n黧\txpp\n喾\tkwq\n帔\trrp\n殄\tgje\n甙\tpzg\n秫\txei\n蠛\tclyi\n踟\tpod\n逑\tfkiu\n镔\tzwth\n驺\tnxb\n鼗\tpwwc\n極\terd\n硖\tmhhb\n罟\tycgs\n裎\ttdn\n蹰\tpxz\n邰\tkdt\n髌\tfwt\n麸\tahh\n岵\tvcg\n暌\tohf\n暝\towo\n欹\tmzeq\n窀\tefsc\n蓼\tlzje\n骘\ttssn\n孥\tbrhi\n幛\trxn\n愦\thcob\n肷\tveq\n薹\tlgd\n钎\tzlq\n钭\tzjd\n镬\tzlu\n曩\totd\n泔\tkzg\n溘\tkgka\n粝\tpxf\n荽\tlybn\n蚶\tczg\n衄\ttaa\n裉\ttige\n鹈\thtx\n圉\trggy\n嫘\tbqi\n旒\tleb\n箪\trhq\n粢\twep\n裼\ttone\n跫\tuoip\n酃\ttddt\n殳\trss\n瀣\tkgr\n皤\tutpq\n睃\tqkh\n脘\tvwm\n莪\tltup\n雞\tyimu\n哌\tdxt\n甯\twhty\n疠\tafp\n疴\tazk\n胙\tvwa\n蚰\tcdyc\n螬\tcfyo\n谵\tsxxs\n鐾\tcdnz\n钌\tzrl\n髮\tpen\n鳔\twvfs\n彘\tbvo\n罾\tyhr\n鄞\tldat\n醵\tyzj\n隹\tuii\n鳢\twyz\n鹪\tucx\n旄\tlev\n绨\tiht\n蕖\tlkne\n虮\tcoj\n蝽\tcaio\n尥\toni\n煳\tccvy\n玎\tnad\n璁\tntr\n罱\tynm\n萑\tlui\n衝\tpldl\n钫\tzlf\n锱\tzoq\n悱\thrf\n捩\tummq\n榱\tetd\n濞\tkoql\n瑷\tnyw\n砹\tmlb\n窨\texy\n篦\trtr\n螽\thwc\n憷\thee\n磴\tmhz\n蘼\tlzr\n褊\ttmi\n貔\tmtrv\n跖\tpms\n辊\tyov\n逯\tbkuc\n嵝\tvpbn\n糗\tpom\n蝣\tcle\n鳚\twcf\n麇\txxh\n曛\tolp\n湔\tkhv\n癔\taxhx\n肜\tves\n醐\tycv\n庀\txvb\n沖\tkdg\n猡\tmyl\n玢\tnhpd\n皴\tkhhr\n筇\trut\n艨\tilw\n袼\ttsg\n轫\typi\n逭\twku\n遄\tvlu\n钯\tzmbj\n髀\tfut\n敫\tulhp\n朊\tvmp\n槔\teum\n沔\tkfga\n泶\tkwks\n蒌\tlpb\n蛲\tcpfp\n蹀\tplae\n鹾\tyrbu\n浼\tkwpe\n煙\tcvg\n犸\tmnm\n苊\tlxz\n薅\tlbf\n酽\tyfc\n鲔\twnvy\n嵛\tvjv\n樘\tesgt\n獍\tmxpe\n祆\tffm\n銎\tuoiz\n喱\tdxd\n捭\tuut\n湓\tkhpa\n缡\tizb\n藁\tlge\n迕\tenu\n酐\tyegy\n靈\ttddj\n勝\tvhhs\n瞋\tqnq\n偬\tjne\n搴\twqhu\n準\tkuns\n砬\tmil\n肭\tvmj\n舾\tivx\n莩\tlyh\n葚\tlzha\n鲃\twmb\n鹱\txlu\n侉\tjmm\n渖\tkwog\n璩\tnzj\n篯\trzf\n糇\tpjn\n芑\tlvj\n褰\twqht\n铋\tzhtp\n鳙\twxbt\n仫\tjtk\n岣\tvgjs\n庹\txlci\n戥\tolpg\n杪\teyt\n漯\tkqi\n甾\toqt\n籼\tpvs\n肀\tbv\n锊\tzyk\n溏\tkxb\n穸\telx\n酡\tywv\n铒\tzqe\n铯\tzxm\n鞔\ttwp\n鲚\twqq\n哏\tdig\n敉\tphpm\n燹\tjjc\n豉\tzci\n醭\tycgi\n钇\tzai\n锼\tzpg\n磙\tmth\n祕\tfht\n菘\tlehk\n钔\tzam\n锜\tzmz\n炱\tkdc\n茭\tlab\n锿\tztdk\n骢\tntrh\n仡\tjea\n垴\tgzb\n炻\tcms\n琚\tnccg\n疳\tazg\n镗\tzsgt\n鸺\tjex\n搠\tuhs\n砜\tmobi\n陸\ttghg\n隰\ttoi\n刿\tvlp\n桤\tevvj\n瓿\tidr\n缧\tiqi\n荸\tlnw\n菡\tlakm\n馇\tqeo\n鳇\twunw\n栌\teyc\n溲\tkpg\n艚\tify\n锝\tzof\n鹮\tyfdx\n仵\tjen\n嶷\tvvot\n殍\tgyh\n煺\tciuc\n羼\tcggg\n葜\tlap\n谂\tsja\n镅\tzcq\n鲷\twmgd\n吣\tdhx\n氙\tvvs\n硭\tmlfw\n窬\tejvp\n蒴\tlhs\n铑\tzql\n哿\tsdz\n窆\tetr\n筌\trjn\n蟥\tcnh\n锍\tzbo\n鸸\tlxne\n佢\tjnn\n橥\tmqoe\n甓\tcdnr\n硇\tmtrb\n苒\tlmg\n蒡\tliwl\n鞲\ttqf\n鸲\tgxn\n喹\tdmgg\n囧\trhm\n檠\tlghe\n爨\tpmf\n艟\tiid\n跶\tpmu\n辂\tysgc\n镓\tzwj\n髟\tpes\n涠\tkrg\n葳\tlnfb\n邴\tfmjt\n铙\tzpf\n锪\tzne\n淚\tkmmq\n胩\tvyf\n镄\tzto\n眬\tqtl\n蕤\tljl\n遊\tlehu\n龢\tjddx\n翥\tqoz\n幾\tiin\n耒\tall\n術\tpei\n躔\tpxd\n黥\tpgy\n箬\trln\n谮\tsddo\n唸\tdjah\n傑\tjlv\n訾\tsvsy\n戢\tdqp\n樑\tekp\n檑\tetq\n襦\tttle\n歃\tlpe\n瘌\taxpd\n捲\tuhhz\n潋\tkjkh\n湊\tkai\n纛\takq\n蓍\tlqor\n徼\twul\n杌\tefpe\n芈\tgy\n廢\txhbr\n滹\tkzt\n爿\tapp\n謦\tgcrs\n狴\tmvvg\n玟\tnvw\n眭\tqggt\n貅\tmje\n郜\tqdt\n娈\tzcbn\n嫫\tblo\n搦\tubw\n瑗\tnyfr\n疋\tts\n豐\tvaaz\n撐\tusly\n殼\tgwfo\n柰\tefsm\n殂\tgfq\n糨\tpbd\n绐\tikd\n塗\tkjxg\n沭\tkei\n犴\tmegq\n蕈\tlvo\n谳\tsnm\n坻\tgbi\n怿\thru\n牠\tqey\n瑠\tnbq\n翮\tnzv\n耋\tqyi\n尻\tckj\n棹\teyon\n阼\ttwa\n骝\tnbqt\n妳\tbxyx\n撄\tuoo\n柒\tkre\n侑\tjnv\n悝\thdl\n欷\tbnre\n洇\tkrm\n燠\tctm\n薑\tlfqf\n坩\tgzg\n媵\tvhhb\n徂\twfqc\n旰\toegr\n洎\tkoi\n澌\tkzht\n妧\tbmp\n廨\txxt\n缵\tiqp\n裒\ttpj\n觇\tyde\n兇\tbmpe\n崦\tvmoa\n採\tuye\n耧\tapbn\n轺\typd\n镝\tzim\n霪\ttky\n喈\tdvvu\n眚\tlqm\n剡\tccpd\n哓\tdpf\n怍\thwa\n悛\thkhh\n蓐\tlfk\n觚\txtyg\n貊\tmfu\n卺\takfz\n昝\thyor\n柙\tesj\n栊\tetl\n棰\tell\n绂\tinr\n莳\tlok\n蒹\tlhbc\n蚺\tcmg\n參\tkkke\n嵫\tvhii\n幞\trcgi\n滏\tkhbz\n瘗\tahhg\n蓊\tlhk\n蠃\tfdvc\n複\tteo\n豳\tvjjs\n遘\tqfm\n锞\tzqem\n雩\ttma\n鬲\tngg\n呙\tdmjr\n梃\tetg\n確\tmwu\n秭\txtf\n粵\ttrt\n茕\tlwan\n蕞\tloq\n蝰\tcmgg\n邾\ttate\n髒\tflg\n伛\tjnb\n暾\togh\n祧\tfpw\n腩\tvnm\n踣\tpidk\n颟\tlmw\n骖\tnkm\n黻\tcfni\n仝\tjug\n堠\tgjn\n壇\tgzr\n悫\tgwoh\n筅\trqp\n缍\till\n缑\tijn\n蒽\tlrmh\n豸\tmi\n轵\tydh\n陬\ttqr\n麈\txin\n刳\tmmap\n哕\tdvlx\n帻\traob\n桫\teky\n繫\tymr\n纔\tiwvw\n臟\tvln\n荑\tlmbg\n蹁\tpmi\n隈\ttqft\n骟\tnmzv\n佾\tjhv\n剀\tvvp\n埒\tgyk\n埸\tgone\n攮\tund\n栲\teqf\n栳\teql\n泺\tkbyx\n洧\tknvy\n糌\tphyo\n艹\tlc\n荦\tlwq\n赙\tonkc\n鲥\twok\n圬\tgma\n圯\tgvs\n塄\tgyl\n壩\tgtt\n妣\tbvvb\n忭\thzy\n慝\tnlnh\n椟\tenam\n犰\tmkj\n瘳\tazje\n耜\taki\n艸\tlc\n茌\tljgs\n荇\tlpx\n蛸\tcyvy\n贳\tlaob\n踬\tpxno\n郄\tbnk\n铗\tzhhb\n颃\tzow\n鹹\tyrp\n丌\tlc\n仳\tjvvb\n刭\trup\n劓\toqlp\n哚\tdoe\n唣\tdur\n屣\tcws\n擐\tuyft\n晡\tonf\n柝\tetid\n檎\tejzv\n歷\txxx\n溷\tkrjs\n糞\tpql\n習\tzubv\n蓥\tlwz\n蘧\tlzju\n趑\tpwe\n趱\tpqpo\n邗\tete\n郐\tjbte\n陴\ttutn\n颡\trrrw\n傢\tjwj\n嘆\tdld\n坜\tgxs\n惝\thss\n掎\tumz\n柽\terg\n瀹\tkjdd\n猞\tmja\n疔\taad\n癀\tanh\n簋\tria\n絷\tukii\n缌\tiqh\n葸\tlqh\n郫\tutnt\n锔\tzca\n镡\tzvo\n骐\tnzhb\n叻\tdslk\n噍\tduch\n圹\tgxg\n垧\tgtm\n埭\tgbk\n埴\tgnqf\n屍\tcgv\n屦\tcwp\n廑\txld\n悃\thre\n拶\tuol\n昃\toxj\n桴\teyh\n氍\tqquv\n災\toch\n猁\tmxp\n瘐\tapj\n砑\tmly\n箜\treu\n篚\trnr\n绁\tila\n缳\tiyft\n芘\tlvvb\n萁\tlzhb\n蓁\tlaix\n蓠\tlzb\n酹\tyyk\n镪\tzbd\n馘\thopf\n鳐\twyaf\n佈\tjnr\n垆\tgyc\n堙\tgvg\n怃\thdu\n憝\tghhh\n扃\tmmdk\n撙\tuhy\n殪\tggw\n毳\tvvvm\n浍\tkjb\n溱\tkaix\n狺\tmsy\n珙\tnlhb\n瘰\taqi\n眄\tqfga\n礅\tmgh\n菰\tlhyg\n蕻\tlpl\n蜩\tcmgd\n觋\tujje\n贶\todp\n郇\tnote\n镩\tzed\n髹\tpej\n黟\tpll\n佴\tjqe\n坼\tgti\n岈\tvly\n岙\ttmv\n怳\thdpe\n掊\tuidk\n揎\tuwf\n杩\tenm\n溽\tkfk\n牾\tqwd\n狃\tmagt\n珉\tndm\n矧\tobg\n筚\trvv\n箨\trur\n糍\tphii\n绗\tipx\n舄\tpnc\n舳\tidy\n艋\tiham\n茳\tlku\n蝾\tclwe\n觌\tnawe\n觜\tsvx\n貘\tmlom\n轹\tybyx\n酎\tykc\n酤\tycgy\n醜\tyag\n铫\tzpw\n镟\tzlet\n镥\tzwo\n陔\ttkh\n骀\tnkd\n髫\tpep\n龠\tjddd\n兌\thdpe\n坫\tgyd\n埝\tgja\n彖\tbjs\n戽\tmjd\n揸\tueo\n摅\tuzhx\n枘\temj\n柁\tewv\n栝\teas\n沩\tkis\n皲\twyr\n瞀\tithq\n筲\tryv\n篼\trubp\n糈\tptv\n綮\tmhis\n羝\tgbid\n茆\tlbm\n茛\tlig\n荜\tlvvn\n蔸\tlub\n薤\tlgr\n趵\tpni\n跽\tpvh\n辋\tymh\n鲵\twpp\n鲼\twnl\n鹣\thbcx\n仉\tjoj\n垲\tgvvj\n埕\tgdn\n妁\tbni\n孓\trid\n忉\thpd\n忮\thcix\n慾\thehx\n戋\tfpg\n挢\tutm\n揠\tunob\n桄\temg\n桷\text\n棼\teehp\n檫\tewhf\n毹\tjvpv\n洫\tktam\n淩\tkghh\n滠\tkqr\n漭\tklml\n爝\tcyy\n狳\tmjx\n珧\tnpw\n畎\tqmq\n疬\taxs\n痦\tawd\n瘊\tajno\n瘼\talo\n瞢\tlywq\n祓\tfnr\n籀\trubq\n纩\tixg\n聱\taphq\n脞\tvjjg\n腠\tvaim\n莨\tlii\n萆\tlut\n蒉\tlco\n蕺\tldqp\n蝤\tchy\n蝻\tcnmg\n襻\tteb\n觏\tqfme\n赆\toci\n趼\tpfl\n醅\tyid\n铊\tzwv\n镲\tzwhf\n阽\ttyd\n鲽\twla\n鳜\twxhe\n鹇\taex\n儇\tjyf\n劂\txhsp\n坌\thpg\n坭\tgcv\n坶\tgkm\n埏\tgts\n埤\tgut\n帱\trakc\n恥\tqhx\n恧\tlhx\n擗\tucd\n枧\teej\n桿\teoe\n楗\tebu\n檗\tcdne\n汆\tjksu\n汔\tkea\n淠\tkql\n漶\tkddh\n澉\tkaq\n狁\tmkp\n璺\tpmfi\n甍\tlywr\n瘵\tahfs\n禊\tfap\n箦\traob\n篌\trjno\n绠\tifo\n舡\tiugo\n舴\tiwa\n葶\tlga\n蔟\tlle\n蠟\tcop\n襞\tcdnt\n觖\txtn\n赇\tofk\n躐\tpop\n躜\tpqpo\n轾\tyyi\n邡\tltef\n骒\tnqem\n鬏\tpex\n鲞\thhwv\n鳘\tekhw\n黉\tkwnh\n鼷\tpyim\n俜\tjdfa\n僬\tjuch\n劁\tucp\n哳\tdutj\n垌\tgmf\n垸\tgwm\n塍\tvhhg\n墁\tgoy\n屺\tvvj\n岜\tvmb\n岡\tmhv\n廒\txap\n弔\tbgsg\n復\tweoh\n揲\tula\n搌\tucl\n搛\tuhbc\n攉\tutui\n枨\tepc\n柃\tejks\n桊\thhe\n椐\tecc\n椠\tytem\n椹\tezha\n樨\teck\n橼\teib\n毵\tkmev\n氆\tvhco\n氽\tjksr\n泐\tktsl\n溻\tkoz\n潲\tkxy\n猃\tmjkf\n甏\ther\n眍\tqnb\n瞍\tqpgr\n瞵\tqpl\n砘\tmfsc\n碹\tmwf\n磲\tmkn\n篥\trve\n簏\trxl\n绋\titf\n缲\tidde\n罨\tymo\n耩\taqf\n脬\tvyh\n腧\tvjvp\n舣\tiib\n舯\tidg\n芴\tlnes\n蒇\tlnob\n蓰\tlwss\n蔌\tlxe\n薦\tlxf\n蝥\tithc\n褙\ttav\n豇\tzug\n邶\tavt\n酞\tymi\n酲\tydn\n酾\tyfv\n钐\tzesj\n锬\tzcch\n锾\tzyf\n镙\tzqi\n陧\ttog\n顸\tewy\n鲭\twav\n黹\tcfb\n鼢\tphpd\n㞎\tcmb\n佧\tjyfy\n傺\tjhfs\n冱\twfbj\n剞\tmzp\n唪\tdaiu\n唼\tdib\n埚\tgdm\n堍\tgwt\n墼\tymrg\n夼\tmoc\n尜\tymy\n岽\tvryx\n庳\txutn\n彳\twcc\n恝\taphx\n捃\tubt\n桕\tepj\n榍\tecy\n氵\tks\n泖\tkbm\n浈\tkyob\n滗\tkrv\n瀵\tkpq\n犋\tqqh\n瘕\tacm\n瘥\tagu\n癃\tath\n癍\tanvn\n眢\tlzq\n眵\tqllx\n礓\tmfqf\n稂\txiig\n筢\trum\n箢\trwl\n缋\tico\n膣\tvey\n臌\tvhc\n艴\ttxm\n茚\tlbfz\n茺\tlbpe\n茼\tlmfd\n莛\tltg\n萏\tlxpj\n蜞\tczh\n蝓\tcjvp\n赕\tocc\n蹯\tptp\n酴\tyjx\n钅\tzj\n钬\tzchj\n铴\tzkae\n锇\tztu\n镘\tzoy\n霈\ttkf\n颥\ttlw\n飑\tobn\n驵\tnfq\n鬆\tpee\n鲦\twhem\n鲳\twoo\n鹛\tcqx\n䌷\tidy\n亍\twc\n仂\tjsl\n冁\thqnt\n劐\tlur\n厶\tks\n叆\tbywr\n吲\tdbg\n哜\tdqq\n唛\tdah\n嚆\tdlg\n囝\trhi\n圊\travy\n垤\tgyi\n埘\tgok\n埯\tgmo\n墚\tgkp\n奻\tbbn\n嫜\tbxn\n宀\twg\n岍\tvfl\n峃\tkwvs\n巯\trubo\n戤\tvrap\n扌\tuss\n掭\tufm\n揞\tuxy\n曶\tneo\n楱\teaim\n槠\tesq\n沲\tkeey\n洚\tkhvk\n炘\tctj\n烀\tcth\n牿\tqqd\n犏\tqmi\n猸\tmcq\n猹\tmeof\n疰\tain\n痖\tafc\n瘃\taji\n瘖\taxy\n眾\tyjj\n砟\tmwas\n砼\tmju\n碲\tmiwr\n磉\tmrr\n稆\txdd\n筘\trud\n筻\trfo\n粞\tpvx\n糸\tis\n缏\tijf\n耔\tahil\n耠\tajdk\n耱\tazm\n耵\tqade\n聍\tqwa\n胬\tbrmj\n胲\tvkhy\n脒\tvpmy\n腽\tvoam\n膦\tvplv\n舭\tivvb\n苈\tlxs\n苘\tlmd\n茇\tlnr\n茈\tlsvb\n荬\tlaw\n菝\tlun\n菪\tlwms\n菴\tlmoa\n萜\tlry\n蕹\tlziu\n薷\tltle\n蚵\tczk\n蜱\tcut\n蜾\tcqe\n螋\tcpg\n螵\tcvf\n蟓\tcwx\n觫\txtx\n谫\tshvp\n跡\tpzc\n踺\tpbu\n躞\tpsc\n辁\tyjn\n迮\twuca\n鄹\tqrtt\n醑\tytv\n釒\tzj\n钶\tzzk\n钸\tznrj\n钽\tzofi\n铈\tzzr\n铌\tzcvb\n铘\tzlt\n铞\tzdr\n铟\tzrm\n铪\tzjdk\n铼\tzah\n锎\tzaf\n锓\tzbw\n锖\tzav\n锘\tzln\n锫\tzid\n镎\tzjdu\n镦\tzgh\n镨\tzhc\n镱\tzxhx\n阢\ttfp\n骍\tnnx\n骣\tnchh\n鲒\twgd\n鲣\twpr\n鲩\twwmp\n鲻\twoq\n鳆\tweoh\n鹋\tlqx\n鹎\tutnx\n黪\tpkme\n鼯\tpwdk\n齄\toqlf\n𡗗\taid\n𤆵\tcmbh\n𫟷\tzilj\n𮹝\tttt\n𰙤\tfsfs\n々\txid\n〇\tdkk\nの\taee\n㐎\tvai\n㑇\tjxbj\n㑊\tjzc\n㑌\tjnnw\n㑩\tjyl\n㑺\tjuv\n㓥\tybp\n㓦\tfup\n㕠\twur\n㕥\tdjr\n㕮\tdhbi\n㖊\tdbk\n㖞\tddmj\n㗏\tdcfs\n㗑\tduf\n㗒\tdtdk\n㘄\tdeyl\n㘎\tdaa\n㘗\tdqqu\n㘥\tryai\n㘰\tgjd\n㘵\tgnr\n㙍\tgrr\n㙘\tgvbn\n㙟\tgiiv\n㙦\tjxjg\n㚢\tjbn\n㚣\tbbn\n㚰\tbcf\n㚻\tqbn\n㚽\tufab\n㛃\tapbn\n㛅\tbqe\n㛚\tbkt\n㛹\tbjf\n㜅\tbziq\n㝀\tkhi\n㝹\tytw\n㝿\torp\n㞗\tcfki\n㞘\tcji\n㞞\tcwj\n㞢\tsfi\n㟂\tvkm\n㟃\tvaf\n㟖\tvnl\n㟤\tvbks\n㠇\tvgyo\n㠓\tvlwj\n㠮\thcou\n㠯\tki\n㡀\tfb\n㤅\tdhx\n㤘\thxbj\n㤙\trnhx\n㤞\thwtr\n㤥\thkh\n㤭\thtmp\n㥄\thghh\n㥏\thih\n㧀\tmcj\n㧐\turry\n㧑\tuisi\n㧟\tukn\n㧥\tuqpe\n㧯\tuql\n㧱\tjdus\n㨃\tugh\n㨄\tumgd\n㩟\tuwq\n㩳\tuuur\n㪗\tidhp\n㫚\tneor\n㫰\toii\n㬊\toyfr\n㬎\toiic\n㬚\tobv\n㬤\tooi\n㭎\tembi\n㭕\tegk\n㮾\tiive\n㯊\tefsc\n㰀\texp\n㱔\tsvl\n㳇\tkhbi\n㳘\tkbpe\n㳚\tkni\n㳠\tkmu\n㴔\tkxbh\n㴩\tkodm\n㵐\tkxhe\n㵘\tkkkk\n㵲\tkel\n㶁\tkyk\n㶉\tkyix\n㶲\tctyh\n㸆\tcqd\n㸌\tctui\n㹢\tmsd\n㹧\tmmmd\n㹭\tmoat\n㹴\tmfob\n㺄\tmjv\n㺢\tmtui\n㺭\tnhi\n㻋\tnxsw\n㻪\tnuv\n㻬\tntma\n㽏\tkjdz\n㽒\tqsls\n㿠\tumg\n㿢\tovu\n䀇\tcaa\n䀦\tqcgm\n䁖\tqpb\n䂮\tapms\n䃅\tmhq\n䃎\tmml\n䃰\tmwh\n䄉\tftu\n䅟\txkm\n䇽\trutj\n䌹\timd\n䍉\tadh\n䎃\tmgz\n䎖\thryz\n䎜\tqql\n䏝\tvmai\n䏡\tvfs\n䏲\tvht\n䏿\tmhvy\n䐃\tvrx\n䐛\tvmq\n䒕\tlyx\n䒟\tlmz\n䓂\tlsy\n䓖\tlesl\n䓛\tlcs\n䓞\tlmmq\n䓤\tlneh\n䓨\tlwaf\n䓫\tlmzk\n䓬\tlyo\n䕷\tlzis\n䖋\tzjr\n䖢\tcytp\n䗖\tclwr\n䗛\tcjg\n䗪\txlcc\n䗴\tcrt\n䙆\tthfm\n䙌\ttco\n䜣\tstj\n䜩\tsldc\n䜺\tzlor\n䝋\tjwfs\n䝙\tmnbi\n䞍\toavy\n䟡\tpbid\n䢺\tsmt\n䢼\tlht\n䣘\tsgte\n䥽\tzsr\n䦃\tzlqo\n䦆\tzqq\n䦶\taxbv\n䦷\tajjg\n䩄\tbej\n䯄\tndmj\n䯼\tpemc\n䰀\tpexb\n䲝\twjz\n䲟\twbf\n䲠\twaio\n䲢\tvhhw\n䴓\tfrx\n䴔\tabx\n䴕\tgpx\n䴖\tavxn\n䴗\tqmx\n䴘\txzx\n䴙\tcdnx\n䶭\ttnw\n䶮\ttfmd\n丄\tgfi\n丅\tfgs\n丏\tfga\n丨\tgss\n丬\tap\n丶\tidd\n丼\tqidj\n丿\ttpp\n乀\tid\n乂\tbi\n乄\taid\n乆\tajr\n乕\txur\n乛\tae\n乸\tekm\n亅\tgs\n亊\tfhb\n亖\tmme\n亠\tztt\n亶\tzrdf\n亸\tghhn\n亹\tzpmf\n亻\tjrr\n亾\tfww\n仌\tjjr\n伈\tjhx\n伋\tjcj\n伕\tjhf\n伡\tjyc\n伣\tjej\n伬\tjcid\n伭\tjzi\n伱\tjjy\n伻\tjeh\n伾\tjcf\n佀\tjki\n佁\tjkd\n佉\tjgks\n佖\tjht\n佷\tjig\n佸\tjas\n佹\tjxxz\n佺\tjjn\n佽\tjwe\n侁\tjqp\n侂\tjxt\n侖\tjl\n侘\tjwtr\n侜\tjio\n侴\tjagp\n侷\tjca\n侹\tjtgu\n侻\tjhdp\n俍\tjii\n俙\tjbnr\n俤\tjhtf\n俫\tjahb\n俵\tjati\n俶\tjyfr\n倅\tjzjn\n倐\tjghc\n倓\tjcch\n倕\tjllg\n倖\tjggy\n倞\tjgyx\n倧\tjwfs\n倴\tjmn\n倷\tjmfs\n倻\tjqte\n偁\tjym\n偆\tjaio\n偊\tjtd\n偍\tjot\n偐\tjix\n偓\tjcy\n偡\tjzh\n偢\tjxc\n偭\tjbm\n偰\tjapm\n偲\tjqhx\n傃\tjais\n傉\tjfkc\n傎\tjnqh\n傒\tjyim\n傕\tjwui\n傚\tjabh\n傝\tjoz\n傭\tjxbt\n僇\tjzje\n僎\tjvvh\n僔\tjhy\n僕\tjcgi\n僙\tjnh\n僜\tjhz\n僝\tjchh\n僰\temej\n僽\tjxch\n儁\tjum\n儓\tjgdy\n儗\tjvot\n儚\tjlyl\n儦\tjxch\n儳\tjwvw\n儴\tjtdf\n儾\tjndt\n兎\twt\n兙\tcpn\n兛\tcpl\n兝\tcph\n兞\tcpv\n兡\tcpfu\n兣\tcpxd\n兲\tnhb\n冂\tmkk\n円\tvyy\n冇\tnmk\n冏\tmhd\n冑\tdvy\n冓\tqfmg\n冔\todf\n冖\twg\n冞\twpm\n冧\twee\n冫\twbb\n冮\twug\n冴\twly\n冸\twhu\n凊\twavy\n凓\twve\n凘\twzht\n凪\tosi\n凵\tmk\n刂\tpd\n刌\tkpd\n刓\tmppd\n刜\ttpd\n刬\tfppd\n刲\tggp\n刵\tqpd\n剅\tzpd\n剉\tjjgp\n剋\tcpp\n剏\thlp\n剒\tlop\n剕\trpd\n剚\tfdbp\n剟\trrrp\n剳\tljdp\n剸\tnqkp\n剹\tzjep\n剺\tahxp\n劀\titmp\n劃\tbqfp\n劄\trjdp\n劏\tsqpd\n劘\tzrpd\n劙\tbjcp\n劵\thhsl\n劻\tnns\n劼\tgds\n勍\tgys\n勔\tbsl\n勚\tlaos\n勠\tzjes\n勥\tbdcs\n勷\ttdds\n勹\tnkk\n勼\tnkj\n匄\tnfw\n匚\tnk\n匜\tneyk\n匼\tnjd\n卌\tlxx\n卍\taaa\n卐\taaaa\n卩\tzj\n卬\tbzj\n卲\tpdz\n卼\tfpx\n厃\txxc\n厔\txyi\n厖\txoes\n厷\tnks\n厾\tagks\n叇\tbbk\n叒\trrry\n叕\trrrr\n叚\tcmnr\n叡\tghqr\n吋\tdkc\n吔\tdey\n吖\tdhg\n吚\tdbt\n吥\tdcb\n吪\tdjvb\n吰\tdnk\n吽\tdqn\n呇\tkdk\n呌\tdjd\n呎\tdcid\n呝\tdma\n呣\tdkm\n呯\tdeh\n呴\tdgjk\n呾\tdof\n咇\tdht\n咉\tdmmd\n咍\tdkd\n咑\tdua\n咗\tdnug\n咠\tdqe\n咡\tdqe\n咥\tdyi\n咮\tdta\n咲\tdhm\n咷\tdpw\n咺\tdfof\n哃\tdmf\n哋\tdge\n哖\tdev\n哢\tdnlc\n哱\tdnwh\n唗\tdpz\n唝\tduo\n唞\tduj\n唡\tdml\n唦\tdky\n唵\tdmo\n唶\tdlor\n啈\tdggy\n啗\tdxpj\n啙\tsvd\n啛\tdfb\n啯\tdrn\n啰\tdyl\n啱\tdvm\n啲\tduni\n啴\tdhq\n喆\tgdg\n喌\tddoo\n喎\tdfd\n喓\tdvbn\n喤\tdun\n喨\tdgo\n喭\tdix\n喰\tdqs\n喺\tdjt\n喼\tdxb\n喿\tddde\n嗈\tdod\n嗙\tdiwl\n嗛\tdhbc\n嗞\tdhi\n嗮\tdov\n嗰\tdjrc\n嗱\tdjdu\n嗻\tdxl\n嗼\tdlom\n嘅\tdid\n嘑\tdzt\n嘒\tdaab\n嘚\tdwok\n嘡\tdsgt\n嘢\tddi\n嘦\tdhv\n噀\tdvvh\n噂\tdhy\n噃\tdtp\n噆\tdddo\n噇\tdidl\n噉\tdaq\n噏\tdjdz\n噷\tdxeq\n嚃\tdyk\n嚄\tdlu\n嚚\tddqd\n嚜\tdpgt\n嚟\tdxpk\n嚡\tdtg\n嚥\tdldc\n嚭\thdcd\n嚱\tdzz\n囌\tdlwx\n囍\thdhd\n囗\trkk\n囘\tmvs\n囙\trnk\n囥\trzo\n囮\trjv\n囯\trnw\n囷\trxh\n囸\trfsi\n圀\trhl\n圂\trjs\n圌\trvl\n圐\trylf\n圙\trhb\n圢\tgad\n圫\tgtrq\n圲\tglq\n坉\tgfs\n坋\tghpd\n坒\tvvgt\n坖\tmpg\n坢\tghu\n坥\tgfq\n坬\tgyg\n坰\tgmdk\n坽\tgjks\n垇\tgmfi\n垈\tjpgt\n垍\tgoi\n垎\tgsg\n垏\tgbv\n垕\txfdg\n垙\tgmg\n垚\tggg\n垝\tgxx\n垞\tgwtr\n垟\tggy\n垯\tgmu\n垰\tgyf\n垱\tgyb\n垵\tgwb\n垺\tgyhi\n垽\tktg\n垾\tgoeg\n垿\tgxi\n埆\tgxt\n埇\tgkt\n埌\tgii\n埗\tgssi\n埪\tgeu\n埫\tgss\n埮\tgcc\n埵\tgllg\n埻\tgghi\n埼\tgmzk\n堃\tllgt\n堄\tgpp\n堉\tgbvy\n堌\tgrcg\n堎\tgghh\n堐\tgxgg\n堘\tghhg\n堧\tglm\n堨\tgonf\n堩\tghf\n堲\tizgt\n堶\tgnu\n堺\tgqj\n堼\tggkg\n堽\tgyfs\n堾\tgai\n塃\tglfo\n塅\tguf\n塆\tgzcb\n塈\tidgt\n塕\tghkz\n塚\tgwj\n塝\tgiw\n塟\tlgvg\n塥\tgng\n塨\tglh\n塮\tgzkc\n塱\tiivg\n塽\tgmbb\n墈\tgzhs\n墋\tgkk\n墐\tgld\n墕\tgfsc\n墘\tgnoa\n墡\tgghd\n墣\tgcgi\n墦\tgtp\n墬\ttbjg\n墺\tgtmm\n壎\tglp\n壜\tgotb\n壴\thuu\n壸\tgwfc\n夂\thi\n夆\thaf\n夐\txmj\n夬\tnjr\n夿\tmmb\n奀\tcmd\n奅\tmbm\n奆\tmnn\n奓\tmll\n奡\tfom\n奣\tfmo\n奤\tmbm\n奭\tmfuu\n妑\tbmb\n妘\tbby\n妭\tbnri\n妷\tbth\n妸\tbzk\n妺\tbfe\n姁\tbgj\n姈\tbjk\n姕\tsvbn\n姛\tbmf\n姞\tbgd\n姤\tbxf\n姦\tbbb\n姩\tbev\n姪\tbyi\n姮\tbfo\n姱\tbmma\n姶\tbjd\n姽\tbxx\n娀\tbpn\n娒\tbek\n娖\tbpu\n娚\tbqs\n娵\tbqr\n娸\tbzhb\n娿\ttzb\n婋\tbzh\n婌\tbyfr\n婍\tbmz\n婗\tbpp\n婘\tbhhz\n婞\tbggy\n婠\tbwk\n婤\tbmg\n婥\tbyon\n婫\tbov\n婬\tbytg\n婳\tbfqm\n婻\tbnmg\n婼\tbln\n媂\tbiw\n媄\tbgm\n媆\tblm\n媓\tbun\n媕\tbjdl\n媖\tblmm\n媞\tbot\n媟\tbla\n媢\tboq\n媭\tewbn\n媮\tbjv\n媱\tbya\n媺\tbvfh\n媿\tbag\n嫄\tbxu\n嫋\tbbw\n嫏\tbiit\n嫑\tcvbn\n嫕\tbno\n嫚\tboy\n嫛\tnorb\n嫪\tbzje\n嫭\tbztn\n嫮\tbtma\n嫳\tfhbn\n嫽\tbmhy\n嬛\tbyft\n嬢\tbthf\n嬬\tbtl\n嬿\tbld\n孃\tbtdf\n孅\tbjjf\n孖\thhi\n宍\twal\n宧\twqc\n宬\twna\n寀\twye\n寁\twfbs\n寔\twot\n尒\tjyx\n尛\tyyy\n尢\toyy\n尨\toes\n尪\tonw\n屃\tcob\n屄\tcex\n屌\tcdr\n屮\tsc\n屲\ttvs\n屴\tvsl\n屻\tvpi\n屼\tvfpe\n屾\tvvs\n岃\tvpid\n岊\tmvs\n岕\tvjp\n岞\tvwa\n岠\tvnn\n岦\tvil\n岧\tvpdk\n岨\tvfq\n峂\tvhwb\n峉\tvsg\n峎\tvig\n峗\tvxxz\n峘\tvfof\n峛\tvgp\n峣\tvpf\n峧\tvabi\n峬\tvnf\n峱\tmagv\n峿\tvwd\n崀\tviig\n崁\tvge\n崄\tvjkf\n崌\tvccg\n崐\tvov\n崑\tvovv\n崒\tvzjn\n崚\tvghh\n崟\tvzj\n崡\tvak\n崶\tvggk\n崿\tvdda\n嵁\tvzh\n嵅\tvnfd\n嵎\tvqv\n嵖\tveof\n嵚\tvzeq\n嵲\tvoe\n嶅\taphv\n嶍\tvzu\n嶒\tvhr\n嶓\tvtpq\n嶕\tvuch\n嶟\tvhy\n嶦\tvxxs\n嶨\tpbbv\n嶰\tvxt\n嶲\tvum\n嶽\tvmsm\n巇\tvzz\n巉\tvwv\n巎\tvfoh\n巛\toc\n巭\tush\n帋\tbrj\n帡\trhlc\n帨\trhd\n帩\tryvy\n帵\trwlz\n幈\trch\n幖\trvf\n幧\trdde\n幪\trlw\n幵\teeg\n広\txksg\n庤\txgk\n庱\txghh\n庼\txvw\n廆\txag\n廋\txpg\n廙\txql\n廴\tuyy\n廻\trdu\n廾\tlc\n弆\tgkl\n弇\tjdlc\n弌\tpfi\n弍\tpme\n弎\tpts\n弝\tbmb\n弢\tbsry\n弨\tbpdk\n弪\tbru\n弶\tbgy\n弸\tbvvy\n弿\twqhb\n彅\tbhv\n彐\tbjj\n彔\tbks\n彟\tbkl\n彡\tess\n彧\tpdfe\n彫\tmgde\n彿\twtf\n徃\twls\n徛\twmzk\n徯\twyim\n忄\thx\n忞\tvhx\n忣\thcj\n忨\thmp\n忳\thfsc\n忺\theq\n怊\thpdk\n怗\thydk\n怞\thdy\n怹\tjehx\n恇\thnn\n恏\tbhh\n恓\thvx\n恔\thab\n恖\ttrbh\n恟\thnbm\n悆\tjxhx\n悈\thpl\n悕\thbn\n悢\thiig\n悰\thwf\n悽\thfb\n悾\theu\n惇\thgh\n惎\tzhhx\n惓\thhhz\n惔\thcc\n惗\thja\n惙\thrr\n惛\thbo\n惢\thhh\n惷\taioh\n惼\thmi\n愃\thwff\n愊\thfd\n愐\thbmx\n愒\thonf\n愔\thxy\n愬\thsvh\n愭\thqo\n愽\thnk\n慄\thve\n慆\thyp\n慇\tzrh\n慓\thvf\n慜\tekhh\n慠\thap\n慥\thqd\n慬\thld\n慭\tahm\n慼\tnyfh\n慽\thny\n憃\taiph\n憇\tazh\n憏\thhf\n憕\thhzd\n憙\thdhx\n憭\thmhy\n憯\thddo\n憱\thgyo\n憺\thxxs\n懁\thyf\n懃\tldah\n懆\thdde\n懞\thlw\n懽\thldu\n戣\thfmp\n戭\twfdp\n扂\tmydk\n扅\tmllx\n扆\tmti\n扊\tmcch\n扞\tueg\n扠\turid\n扤\tufp\n扺\tubs\n扽\tufs\n抃\tuzy\n抆\tuvw\n抇\tuor\n抈\tuvy\n抏\tump\n抔\tucb\n抙\tuus\n抦\tufmj\n抶\tuth\n拃\tuwas\n拏\tbrus\n拤\tuyfy\n挊\tuyfy\n挓\tuwtr\n挜\tufcy\n挦\tubk\n挵\tunl\n挼\tuybn\n捄\tufk\n捨\tujas\n捯\tuyp\n捵\tuih\n捽\tuzjn\n掞\tucch\n掯\tusv\n掱\tuuu\n掹\tuha\n揅\tmflu\n揌\tuqh\n揕\tuzha\n揢\tuws\n揦\tuxpd\n揳\tuap\n揹\tuav\n揻\tunfb\n揾\tuoam\n搇\tujat\n搉\tuwu\n搋\tuxzh\n搒\tuiw\n搕\tugka\n搢\tufco\n搥\tutk\n搰\tufg\n搳\tuwad\n搾\tuew\n摏\tuaip\n摛\tuzb\n摴\tutma\n摽\tuvf\n撖\tuaq\n撚\tuvm\n撴\tughh\n擖\tulof\n擩\tutle\n擿\tuimu\n攲\tmzc\n攴\thpp\n攵\thp\n攷\tfah\n攽\thphp\n敁\tydhp\n敔\twdh\n敠\trrrh\n敩\tkwhh\n斝\tddwj\n斠\tqfmj\n斨\tatj\n斲\tctj\n斶\ttyn\n斿\tlehi\n旂\tletj\n旐\tlep\n旓\tley\n旞\tlehu\n旴\tofn\n旵\tovs\n旸\toaes\n旻\tovw\n旿\toen\n昄\toxry\n昇\totlc\n昈\tomh\n昉\tolf\n昍\toor\n昒\tones\n昚\tmhor\n昡\tozi\n昣\toje\n昤\tojk\n昪\tokl\n昫\togj\n昰\tofs\n昳\toth\n昺\tofmj\n昽\totl\n晅\tofo\n晊\toyi\n晐\tokh\n晙\tokhh\n晞\tobnr\n晢\tuto\n晪\toih\n晫\toyo\n晬\tozj\n晱\tocch\n暅\tohff\n暍\toonf\n暎\tolm\n暕\toxh\n暱\tonl\n暲\toxn\n暵\told\n暶\tole\n暿\tohd\n曆\txxxo\n曇\totb\n曈\toidl\n曌\tove\n曚\tolw\n曱\tsj\n朅\tgkof\n朏\tvsm\n朒\tvmjj\n朓\tvpw\n朘\tvkhh\n朣\tvid\n朤\tvvvv\n朩\temm\n朳\tehb\n朸\tesl\n朿\temk\n杄\telq\n杇\tema\n杕\temd\n杙\tepi\n杧\tefw\n杴\teeq\n杻\teagt\n枅\tefl\n枍\tehf\n枑\tefbj\n枒\tely\n枠\tekn\n枲\tkde\n枹\tenv\n柈\tehu\n柊\tehw\n柖\tepdk\n柮\tesm\n柷\tedp\n柹\tetf\n柺\teds\n柾\tefsi\n栃\texfp\n栐\teik\n栒\teno\n栘\tellx\n栞\teeem\n栟\tehl\n栢\tefu\n栴\teemz\n栻\tepu\n栿\tejm\n桜\tekbn\n桯\tedn\n桲\tenwh\n桹\teiig\n梌\tejx\n梐\tevvg\n梠\teddk\n梣\tevja\n梫\tebw\n梴\tets\n梶\tecv\n梼\teak\n梽\teghx\n梾\teah\n梿\teyu\n棁\tehd\n棐\trem\n棑\terf\n棓\teidk\n棤\telor\n棨\tmhe\n棪\tecch\n棫\tepdf\n棬\tehhz\n棻\tlhpe\n棽\teeja\n椀\tewl\n椆\temgd\n椇\teqhb\n椑\teut\n椓\teji\n椛\telj\n椥\teod\n椪\tehc\n椸\tele\n楒\teqhx\n楙\teite\n楢\tehyy\n楩\tejf\n楪\tela\n楬\teon\n楯\texnq\n榃\teeqt\n榅\teoa\n榊\tefog\n榑\tenkc\n榖\tgwfe\n榰\teqor\n榼\tegka\n榾\tefg\n槃\tire\n槅\teng\n槑\tded\n槕\teyoe\n槙\tenqh\n槚\tevo\n槜\teuv\n槥\teaa\n槱\teych\n槺\texb\n槻\tehej\n樋\tektu\n樛\tezje\n樸\tecgi\n橑\temh\n橞\tenqh\n橤\thhhe\n橦\teidl\n檇\teumk\n檞\textq\n檵\teiia\n櫆\teaj\n櫈\tehzo\n櫌\tewhh\n櫶\tewah\n櫺\tetdd\n櫼\tejjf\n欂\telk\n欛\tett\n欝\tebbk\n欞\tetdj\n欬\tkeq\n欸\tkoe\n欻\tcce\n欿\txpeq\n歅\tvgeq\n歔\tzceq\n歘\tccce\n歠\trrre\n殀\tgtmd\n殣\tglda\n殭\tgfqf\n殽\tbnvr\n毌\tku\n毐\tgku\n毑\tkey\n毪\tvkq\n毴\tvrfm\n毷\toqv\n氄\titmv\n氇\tvwo\n氉\tdddv\n氕\tvtp\n気\tvbiq\n氶\taks\n氹\taks\n氼\tkjr\n氾\tkzj\n氿\tkkj\n汈\tkafi\n汋\tknid\n汍\tkki\n汎\tkoid\n汏\tkmd\n汖\tvks\n汧\tkfl\n汫\tkqj\n汭\tkmj\n汱\tkmqs\n沄\tkby\n沇\tkkp\n沕\tkne\n沘\tkvvb\n沚\tksi\n沝\tkks\n沢\tkci\n沨\tkobi\n沴\tkje\n沺\tkqt\n泂\tkmdk\n泃\tkgj\n泆\tkthf\n泇\tksd\n泙\tkehb\n泚\tksv\n泜\tkbi\n洈\tkxxz\n洏\tkle\n洑\tkjm\n洓\tkemk\n洘\tkqf\n洢\tkjbt\n洣\tkpm\n洨\tkab\n洩\tkoat\n洭\tknnw\n洴\tkhl\n洸\tkmg\n洺\tkldk\n洿\tkmma\n浉\tkpfr\n浐\tkix\n浕\tkciw\n浛\tkja\n浟\tkjg\n浡\tknwh\n浤\tkwnk\n浥\tkdmb\n浬\tkdl\n浭\tkfob\n浰\tkxp\n浲\tkha\n浵\tkmz\n涄\tkdf\n涊\tkpih\n涍\tkqh\n涐\tktup\n涘\tkko\n涚\tkhd\n涢\tkdo\n涴\tkwl\n淏\tkofm\n淒\tkfb\n淜\tkvvy\n淟\tkih\n淯\tkbvy\n淴\tkneh\n淽\tkls\n渋\tksw\n渕\tkhm\n渟\tkga\n渰\tkjdl\n渼\tkgm\n湉\tkhas\n湑\tktv\n湜\tkot\n湝\tkvvu\n湣\tkdor\n湪\tkbj\n湲\tkyfr\n湴\tkhc\n湻\tkgo\n溁\tklwe\n溇\tkpb\n溍\tkfc\n溚\tkljd\n溞\tkric\n溠\tkgu\n溦\tkvfh\n溵\tkzrs\n溹\tknwi\n滀\tkziq\n滃\tkhkz\n滆\tkng\n滈\tkgg\n滉\tkomg\n滍\tksf\n滘\tkwhd\n滙\tknu\n滧\tkabh\n滪\tkiwy\n滫\tkjgv\n滮\tkze\n滷\tkyr\n漈\tkhf\n漋\tkthl\n漒\tkbdc\n漖\tkqhh\n漤\tkeeb\n漦\tahxk\n漴\tkvwf\n漷\tkght\n漹\tkfsc\n漻\tkzje\n漼\tkvu\n潏\tkit\n潖\tknnm\n潝\tkjdz\n潟\tkpn\n潩\tkqlh\n潵\tklv\n潶\tkph\n潽\tkhco\n潾\tkpl\n澂\tkvfh\n澐\tktb\n澔\tkuq\n澛\tkwor\n澥\tkxtq\n澨\tkruj\n澪\tktjk\n澭\tkziu\n澱\tkcl\n澴\tkyft\n澼\tkcd\n澽\tkzjs\n濋\tkeet\n濛\tklwj\n濩\tklu\n瀁\tkgii\n瀌\tkxch\n瀍\tkxd\n瀔\tkgwr\n瀞\tkavb\n瀱\tkyx\n瀺\tkwvw\n瀼\tktd\n瀽\tkwqp\n灈\tkqqu\n灕\tkzbu\n灧\tkva\n灬\tch\n灺\tcey\n炁\tdch\n炆\tcvwh\n炌\tcjpd\n炟\tcof\n炣\tczkh\n炤\tcpdk\n炰\tnvc\n烆\tcpx\n烔\tcmf\n烜\tcfo\n烝\takfc\n烠\tcnvy\n烱\tcmhd\n烶\tctgu\n烺\tciig\n烻\tctsu\n烿\tcmze\n焆\tcdv\n焌\tckh\n焗\tcca\n焘\takch\n焜\tcov\n焞\tcghi\n焠\tczj\n焮\tcteq\n焿\tcxb\n煁\tczha\n煃\tcmgg\n煋\tcols\n煓\tcvl\n煚\tonnc\n煟\tcqv\n煣\tcit\n煴\tcoa\n煿\tcnk\n熇\tcgg\n熛\tcvfs\n熜\tctr\n熥\tcktu\n熯\tcld\n熺\tchdk\n熻\tcjdz\n熿\tcnhh\n燄\txpc\n燊\tccce\n燋\tcuch\n燏\tcitd\n燐\tcplv\n燚\tcccc\n燬\tcpur\n燻\tclp\n爇\tlghc\n爊\tcxc\n爔\tcgx\n爕\tsccc\n爚\tcjdd\n爟\tcldu\n爧\tctdj\n爫\tyaa\n牁\tazk\n牂\tagy\n牚\tsly\n牜\tqn\n牣\tqpi\n牤\tqfw\n牥\tqlf\n牪\tqqn\n牮\tjpq\n牴\tqbi\n牷\tqjn\n牸\tqwh\n牻\tqoe\n犇\tqqq\n犗\tqwad\n犨\tuuq\n犭\tmqq\n犮\tnrid\n犺\tmzo\n犼\tmhae\n犽\tmlyq\n狉\tmcf\n狌\tmls\n狓\tmrp\n狖\tmex\n狛\tmub\n狝\tmxy\n狥\tmno\n狨\tmpn\n猂\tmoe\n猄\tmgy\n猇\tmzh\n猋\tmmmq\n猨\tmyf\n猯\tmvl\n猰\tmap\n猺\tmya\n獕\tmvu\n獴\tmlw\n玃\tmqqr\n玍\tegt\n玏\tnsl\n玒\tnug\n玓\tnnid\n玕\tneg\n玗\tnfn\n玘\tnvj\n玙\tnfa\n玚\tnaes\n玞\tnhf\n玠\tnjpd\n玡\tnly\n玤\tnaf\n玥\tnvy\n玦\tnnjr\n玭\tnvv\n玱\tnjz\n玵\tnzg\n玶\tnehb\n玹\tnzi\n玼\tnsv\n玽\tngj\n玿\tnpdk\n珅\tnog\n珇\tnfq\n珋\tnbm\n珌\tnht\n珒\tnbv\n珕\tnss\n珖\tnmgw\n珛\tnnvy\n珝\tnzv\n珢\tnig\n珣\tnno\n珦\tntmd\n珨\tnjdk\n珪\tnggt\n珫\tnbp\n珮\tnof\n珰\tnyb\n珵\tndn\n珷\tnfp\n珸\tnwd\n珹\tnna\n珺\tnbt\n珽\tntg\n琀\tnja\n琄\tndv\n琇\tnxv\n琈\tnyh\n琍\tnxp\n琎\tnqu\n琔\tnwt\n琖\tnpp\n琞\tovn\n琟\tnui\n琡\tnyfr\n琤\tnxbv\n琫\tnai\n琭\tnbk\n琯\tnwk\n琱\tnmgd\n琲\tnrfw\n琹\tnne\n瑀\tntdv\n瑂\tncq\n瑃\tnaio\n瑄\tnwff\n瑅\tnots\n瑆\tnol\n瑊\tnnfd\n瑑\tnbj\n瑓\tnxh\n瑔\tnuk\n瑖\tnuf\n瑝\tnun\n瑢\tnwhg\n瑧\tnaix\n瑨\tnfc\n瑬\tkboi\n瑱\tnnq\n瑳\tngu\n璆\tnzje\n璈\tnap\n璒\tnhz\n璘\tnpl\n璟\tnogy\n璠\tntpq\n璥\tnlg\n璪\tndde\n璬\tnul\n璮\tnzr\n璱\tnnnt\n璲\tnhj\n璿\tnghq\n瓀\tntle\n瓈\tnxpk\n瓖\tntdf\n瓘\tnldu\n瓧\trns\n瓩\trlq\n瓰\trhp\n瓸\trfu\n瓻\tbnrr\n甃\txcr\n甅\trxd\n甗\tznrw\n甡\tlls\n甦\tfobl\n甪\ttty\n甴\tdy\n畇\tqnwb\n畊\tqqj\n畑\tcqt\n畖\tqyg\n畠\tuqt\n畤\tqgkc\n畬\tjxq\n畯\tqkhh\n畺\tfqf\n疁\tqzj\n疌\tfbsi\n疍\ttofi\n疐\tnwq\n疒\tabb\n疘\taug\n疢\tach\n疭\tajjr\n疻\tadhb\n痁\tayd\n痃\tazi\n痄\tawa\n痎\takh\n痏\tanvy\n痐\tard\n痓\tayi\n痠\takhh\n痺\tautn\n痾\tatz\n瘄\talor\n瘆\takme\n瘈\taapm\n瘝\tayk\n瘭\tavf\n癒\tajv\n癗\tatq\n癥\tawv\n癿\tuae\n皁\tuns\n皃\tupe\n皕\tfuf\n皛\tuuub\n皝\tunm\n皞\tuum\n皦\tuul\n皭\tuyyk\n盉\txam\n盝\tbka\n盦\tjay\n盩\tggha\n盷\tqnwb\n盻\tqhfa\n眊\tqvmm\n眜\tqfe\n眥\tsvq\n眰\tqyi\n睄\tqyv\n睆\tqwm\n睎\tqbnr\n睏\tqre\n睒\tqcch\n睖\tqghh\n睩\tqbk\n睺\tqjno\n瞇\tqpuc\n瞫\tqvo\n矇\tqlw\n矞\titmd\n矰\tohro\n矱\tolu\n矴\tmad\n矻\tmea\n矼\tmug\n砄\tmnj\n砆\tmhf\n砠\tmfq\n砢\tmzks\n砫\tmin\n砮\tbrms\n砯\tmik\n砳\tmms\n砵\tmef\n硁\tmru\n硃\tmta\n硊\tmxxz\n硋\tmkh\n硍\tmig\n硔\tmlh\n硙\tmvvj\n硚\tmtm\n硠\tmiig\n硵\tmyr\n硿\tmeu\n碁\tzhm\n碃\tmavy\n碈\tmbor\n碏\tmlor\n碥\tmmi\n碨\tmqft\n碶\tmapm\n磈\tmag\n磎\tmyi\n磏\tmhbc\n磜\tmhfs\n磡\tmzhs\n磹\tmvo\n磻\tmtp\n礃\tmsu\n礌\tmtq\n礐\tpbbm\n礞\tmlwj\n礤\tmlhf\n礳\tmzm\n礵\tmte\n礻\tfss\n祂\tfey\n祃\tfnm\n祊\tflf\n祋\tfrs\n祎\tfgw\n祏\tfms\n祲\tfbw\n祼\tfqem\n祾\tfgh\n禋\tfvg\n禒\tfbjs\n禔\tfot\n禘\tfiw\n禚\tfgc\n禛\tfnq\n禟\tfxb\n禤\tfyz\n禥\tfzhg\n禦\twazf\n禩\tfql\n禵\tfotw\n禸\tvrr\n禿\txpe\n秬\txnn\n秾\txwt\n稃\txyh\n稌\txjx\n稑\txghg\n稙\txnqf\n穀\tgwfr\n穄\txhfs\n穙\txcg\n穜\txidl\n穟\txhj\n窅\teqmx\n窊\teyg\n窎\texn\n窾\tegf\n竍\tins\n竏\tilq\n竓\tivm\n竕\tihpd\n竘\tigj\n竡\tifu\n竫\tixbv\n竰\tixdl\n笘\trydk\n笭\trjks\n笯\trbr\n笹\trla\n筀\trggt\n筜\tryb\n筤\trii\n筥\trddk\n筦\trwm\n筭\trnl\n筶\trqd\n筼\trdob\n箑\trfb\n箒\trbw\n箖\tree\n箙\trvz\n篅\trvle\n篛\trbww\n篠\trjge\n篨\trtj\n簃\trxll\n簉\trqdu\n簑\trtd\n簕\trtsl\n簖\trpa\n簝\trmhy\n簠\trna\n簰\trau\n簷\trxxs\n籐\trvh\n籝\trfdi\n籤\trjj\n籥\trjdd\n籧\trzj\n籰\trqq\n籹\tpbn\n籺\tpea\n籾\tppi\n粃\tpvvb\n粄\tpxr\n粔\tpnnk\n糄\tpmic\n糒\tplt\n糵\tltkp\n紬\tidy\n絜\tapi\n縠\tgwfi\n縢\tvhhi\n繄\tnori\n纍\tqqqi\n纟\tis\n纮\tinks\n纴\titgs\n纻\tiwfi\n纼\tibg\n绖\tiyi\n绤\tihg\n绹\tinaf\n缊\tioa\n缐\tiuk\n缞\titd\n罇\tahy\n罉\tasu\n罍\tqqqa\n罒\tyss\n罥\tydv\n罦\tyyh\n罳\tyqhx\n罶\tybq\n罽\tyxc\n羑\tgxid\n羓\tgmb\n羕\tgik\n羖\tgrsy\n羨\tgke\n羱\tgxuy\n羴\tgggy\n羶\tgzrf\n翂\tzhp\n翃\tnkz\n翈\tszv\n翋\tzilv\n翙\tvlz\n翚\tzwyc\n翛\tjghz\n翫\tzum\n翯\tzgg\n翷\tplvz\n翾\tyfdz\n耂\tql\n耇\tqgj\n耈\tqgj\n耏\tles\n耑\tvle\n耖\tayt\n耢\talws\n耤\talor\n耥\tass\n耰\tawh\n耲\tatyk\n肏\tjmj\n肶\tvvvb\n肸\tvhn\n胈\tvnr\n胔\tsvmj\n胠\tvgks\n胣\tvee\n胷\tnbmv\n胾\tnpm\n脃\tvxm\n脎\tvbe\n脝\tvgrl\n脟\tvyk\n脢\tvek\n脦\tvph\n脩\tjghv\n脰\tvzd\n脶\tvdmj\n脷\tvxp\n脿\tvat\n腒\tvccg\n腘\tvrn\n腙\tvwfs\n腨\tvvle\n腯\tvxnq\n膇\tvtk\n膍\tvtr\n膗\tvvui\n膙\tvbd\n膥\tanaj\n膪\tviwd\n膰\tvtpq\n膵\tvlzn\n臋\tclhj\n臑\tvtle\n臘\tvop\n臜\tvqpo\n臝\tfdvq\n臞\tvqqu\n臺\tgdwy\n臽\txpj\n臿\tlpj\n舠\tipd\n舥\timb\n舲\tijk\n艃\tidl\n艅\tijx\n艎\tiun\n艷\tvaam\n芃\tloi\n芔\tslc\n芠\tlvw\n芣\tlcb\n芲\tljl\n芶\tlnk\n芼\tlvm\n苉\tlnpe\n苠\tldm\n苢\tlki\n苧\tlwad\n苲\tlwa\n苶\tljy\n苽\tlyg\n苾\tlhtp\n茀\tltf\n茋\tlbid\n茓\tlex\n茝\tlqc\n茢\tlgp\n茩\tlxfd\n茻\tllc\n茽\tljdg\n荁\tlfof\n荄\tlkh\n荍\tlih\n荓\tlhl\n荖\tlql\n荙\tlmuc\n荮\tlik\n荳\tlzd\n莙\tlbt\n莝\tljjg\n莰\tlgeq\n莶\tljkf\n莿\tlemp\n菂\tluni\n菈\tluil\n菉\tlbks\n菍\tljah\n菑\tloqt\n菓\tlqem\n菥\tletj\n菼\tlcch\n萂\tlxd\n萚\tluru\n萣\tlwts\n萩\tlxc\n萳\tlnm\n萹\tlmi\n葓\tlkl\n葖\tlemq\n葙\tleqm\n葰\tljkh\n葴\tlnfd\n蒄\tlwmk\n蒈\tlvvu\n蒎\tlkx\n蒐\tlag\n蒗\tlkii\n蒟\tligj\n蒨\tljav\n蒱\tlunf\n蒻\tlbw\n蓂\tlwo\n蓆\tlxlr\n蓇\tlfg\n蓏\tlyy\n蓢\tliiv\n蓣\tliwy\n蓨\tljgv\n蓳\tllda\n蓺\tlghi\n蔀\tlidt\n蔃\tlbdc\n蔈\tlvf\n蔊\tlcoe\n蔔\tlnfq\n蔧\tlaa\n蔹\tljkh\n蕓\tltby\n蕗\tlps\n蕰\tlko\n蕲\tlhq\n薁\tltmm\n薙\tlou\n薢\tlxt\n薳\tlgdu\n薸\tlkv\n薿\tlvot\n藂\tlqr\n藊\tlxm\n藟\tlqqq\n藠\tluu\n藥\tluie\n藦\tlzu\n藨\tlxch\n蘘\tltdf\n虍\tzh\n虒\txzh\n虓\tkzh\n虡\tzchb\n虤\tzzh\n虷\tceg\n虸\tchi\n蚃\ticc\n蚄\tclf\n蚆\tcmbc\n蚡\tchpd\n蚲\tceh\n蛃\tcfmj\n蜎\tcdvy\n蜐\tcgks\n蝂\tcax\n蝄\tcmhf\n蝘\tcno\n蝡\tclmd\n蝨\tanc\n蝯\tcyf\n蝲\tcxpd\n螀\talkc\n螗\tcxbd\n螠\tcka\n螣\tvhhc\n螱\tcfkc\n蟇\tlomc\n蟏\tclb\n蟢\tchdk\n蟫\tcvo\n蠋\tcyn\n蠔\tcgj\n衂\ttap\n衃\ttac\n衊\ttal\n衎\tpeg\n衒\tpzi\n衕\tpmfd\n衖\tplhb\n衚\tpcvy\n衠\tpnq\n衤\ttii\n衹\ttbs\n衺\ttly\n袆\ttgw\n袗\ttje\n袪\ttgks\n袯\ttsr\n袴\ttmma\n袺\ttgd\n袿\ttggt\n裇\ttta\n裈\ttwyc\n裋\ttzd\n裌\ttmjj\n裑\ttzs\n裛\ttdm\n裻\tyfyt\n褀\ttzh\n褎\ttux\n褏\ttud\n褕\ttjvp\n褝\ttkq\n褟\ttoz\n褦\ttkv\n褯\ttxl\n襆\ttcg\n襈\ttvvh\n襕\ttax\n襚\tthju\n襜\ttxx\n襫\ttmf\n襶\ttnph\n覅\tvbne\n覇\tvtv\n觃\tehi\n觍\tihej\n觕\tqxt\n觟\txtgg\n觭\txtmz\n觱\tnfdt\n觿\txtv\n訄\tksy\n訚\tasy\n詟\ttsy\n詧\thsy\n諐\tjdos\n謷\taphs\n讠\tsyy\n讱\tspi\n讻\tsbm\n诇\tsmd\n诐\tsrp\n诪\tsak\n谞\tstv\n谼\thlh\n谿\tyimh\n豗\tfpj\n豙\tijs\n豨\tjbnr\n豭\tjcmr\n豮\tjnlo\n貆\tmfof\n貍\tmdl\n赑\tooob\n赒\tomgd\n赗\tooq\n赟\tvfpo\n赩\tgcx\n赪\tgcy\n赯\tgcxd\n赲\tpsl\n赸\tpvs\n趖\tpjjg\n趯\tpzu\n跂\tpci\n跅\tpti\n跐\tpsv\n跩\tpoa\n跰\tphl\n跱\tpgk\n跼\tpca\n踒\tpxbn\n踖\tplo\n踦\tpmz\n踧\tpyf\n踳\tpaio\n踶\tpot\n蹅\tpeof\n蹍\tpcl\n蹐\tpwwv\n蹓\tpbq\n蹜\tpwj\n蹢\tpim\n蹽\tpmh\n蹾\tpgh\n躃\tpcd\n躄\tcdnp\n躶\tzqem\n躾\tzgmd\n轪\tymdc\n轷\tythn\n辀\tyio\n辌\tygy\n辒\tyoa\n辡\tnnx\n辢\txnx\n辶\tuc\n辻\tnucs\n込\tjuc\n辿\tvuc\n迌\tvuc\n迍\tfsu\n迒\tzou\n迴\trduc\n迺\tvuc\n逴\tyonu\n遆\tiwru\n遝\tyku\n遹\titmu\n邅\tzrdu\n邘\tfnt\n邠\thpt\n邲\thtt\n邽\tggte\n邿\tgkte\n郈\txfdt\n郚\twdt\n郤\thte\n郪\tfbbt\n郿\tcqte\n鄀\tlndt\n鄃\tjvpt\n鄅\ttdvt\n鄋\tpgrt\n鄌\txbdt\n鄑\tfcot\n鄗\tgte\n鄘\txbtt\n鄚\tlomt\n鄜\txtel\n鄠\ttmat\n鄫\thryt\n酂\tqpqt\n酅\tvumt\n酏\tyey\n酕\tyvm\n酦\tysr\n酺\tynf\n醁\tybk\n醃\tymoa\n醄\tyna\n醆\typp\n醊\tyrrr\n醌\tyovv\n醡\tyew\n醨\tyzb\n醽\tytd\n醾\tyzp\n釆\ttpm\n釐\tahxd\n鋬\tuxrz\n鍳\tqrz\n鏇\tzlet\n鑒\tqryz\n钆\tzae\n钖\tzaes\n钘\tzfl\n钷\tznd\n铏\tzflp\n铓\tzlfw\n铕\tznv\n铚\tzyi\n铥\tztgk\n铦\tzas\n铷\tzbdk\n铹\tzlw\n铻\tzwd\n铽\tzphx\n锧\tzxno\n锳\tzlm\n锽\tzun\n镃\tzhii\n镈\tznkc\n镋\tzsp\n镚\tzvvv\n镠\tzzje\n镤\tzcgi\n镮\tzyft\n镴\tzops\n镵\tzwvw\n闬\taeg\n阇\taqo\n阓\taco\n阘\taoz\n阛\tayf\n阝\tte\n阧\ttjd\n阰\ttvvb\n陁\tteey\n陎\tttaw\n陏\ttnvy\n陑\ttle\n陞\tttlg\n陻\ttvg\n隃\ttjvp\n隩\tttmm\n隺\twui\n雊\tgui\n雋\tumk\n雫\ttfy\n雰\tthp\n霂\ttke\n霅\ttsy\n霊\ttff\n霑\ttkyd\n霙\ttlm\n霡\ttvi\n霨\ttcf\n靉\ttbyh\n靘\tavxm\n靬\tteg\n靰\ttfpe\n靸\ttcj\n靺\ttfem\n靽\tthus\n靿\ttisl\n鞁\ttrp\n鞌\twbt\n鞓\ttdnw\n鞚\tteu\n鞝\ttss\n鞞\ttutn\n鞡\ttuil\n鞥\ttjdl\n鞦\ttxc\n鞧\tthy\n鞨\ttonf\n鞬\ttbu\n鞮\ttot\n鞳\ttljd\n韁\ttfqf\n韂\ttxxs\n韆\ttvm\n韨\tgnri\n颋\ttguw\n颙\tqvw\n颣\tpiwy\n飏\toba\n飐\tobyd\n飔\tobqh\n飖\tyao\n飗\tobb\n飢\tqoj\n飤\tqjr\n飱\tgqs\n饑\tqii\n饣\tqss\n饤\tqads\n饦\tqtrq\n饳\tqsm\n饸\tqjd\n饹\tqsgs\n饻\tqti\n饾\tqzd\n馂\tqkhh\n馉\tqfg\n馌\tqgka\n馎\tqnk\n馚\txohp\n馝\txoht\n馞\txon\n馧\txoo\n驲\tnor\n骃\tnrm\n骉\tnnn\n骎\tnbw\n骕\tnbph\n骙\tnhfm\n骦\tnte\n骭\tfeg\n骺\tfxf\n骾\tffo\n髃\tfqv\n髈\tfiwl\n髎\tfzj\n髢\tpeey\n髽\tpejg\n鬁\tpexp\n鬌\tpenv\n鬍\tpec\n鬎\tpexp\n鬐\tpeq\n鬒\tpenh\n鬘\tpeor\n鬚\tpeew\n鬦\tjjd\n鬰\tebbe\n鬱\teaee\n鬴\tnnf\n鬶\theng\n鬷\tnbmh\n鬽\taes\n魆\tanug\n魋\taui\n鱽\twpd\n鱾\twvj\n鲉\twdyv\n鲊\twwa\n鲌\twub\n鲏\twrpv\n鲖\twmf\n鲗\twop\n鲘\twxf\n鲙\twjb\n鲝\tgwvy\n鲪\twbtd\n鲬\twkt\n鲯\twzh\n鲴\twrc\n鲹\twkm\n鲺\twat\n鲾\twfdq\n鲿\twsb\n鳀\twots\n鳁\twoam\n鳂\twqf\n鳈\twuk\n鳉\twalk\n鳋\twri\n鳑\twiw\n鳒\twhbc\n鳓\twtsl\n鳛\twzu\n鳠\twlu\n鳡\twnfh\n鳣\twzr\n鳤\twrw\n鸤\tcxn\n鸧\tjzx\n鸮\tdfax\n鸰\tjkx\n鸴\tkwx\n鸻\tpxn\n鸼\tixn\n鹀\tujjx\n鹍\tovvx\n鹐\txpx\n鹒\txbjx\n鹓\twlzx\n鹔\tbphx\n鹖\tonfx\n鹙\txcx\n鹝\tnxn\n鹟\thkzx\n鹠\tbqx\n鹡\twwjx\n鹢\tkaxn\n鹥\tnorx\n鹯\tzrdx\n鹲\tlwfx\n鹴\tteqx\n鹵\tyrpm\n麀\txvb\n麑\txppe\n麖\txgyx\n麤\txxxl\n麵\tejjb\n麹\tahn\n麿\tzddk\n黁\tzxo\n黇\tnydk\n黐\txjkv\n黡\txmp\n黵\tpxxs\n鼒\tntq\n鼟\thch\n鼥\tpnri\n鼧\tpwvb\n鼩\tpgj\n鼫\tpmss\n鼽\toqlk\n齁\toqlg\n齆\toqlm\n齇\toqlf\n齉\toqlt\n龁\tlea\n龂\tltj\n龘\ttttl\n龵\tus\n鿃\tqmj\n鿍\tghv\n鿎\tmmu\n鿏\tzahi\n鿔\tzzzk\n鿫\tvtmm\n鿬\tmqts\n鿭\tzxy\n鿽\tewa\n𠀾\tcjby\n𠂉\tet\n𠃓\taes\n𠄏\trll\n𠅤\tzqhx\n𠇔\tjvm\n𠉂\tjmu\n𠊎\tjxg\n𠍐\tjkm\n𠙶\trmk\n𠡦\tlssu\n𠧚\tyrj\n𠩃\tsmx\n𠬶\tbwry\n𠮛\tfdk\n𠰴\tdms\n𠲎\tdjp\n𠲖\tdti\n𠳐\tdat\n𠵆\tduof\n𠷡\tfuj\n𡆠\trai\n𡌶\tghc\n𡍷\tghff\n𡎚\tgmi\n𡏋\tkngt\n𡐓\tgxbk\n𡒄\tgzrf\n𡕩\ttrbh\n𡗜\tmhb\n𡘙\tmmmd\n𡚦\tbid\n𡚽\tagb\n𡛟\tbnu\n𡛰\tbdhb\n𡝗\tbbt\n𡥆\taghi\n𡦀\thao\n𡮐\tyyyy\n𡰦\tcjr\n𡶦\tvtfi\n𡷫\tvna\n𡺎\tvwj\n𢀖\trug\n𢒉\tefq\n𢖿\tyhx\n𢘑\tfdg\n𢙐\thwt\n𢪒\tuus\n𢪘\thpu\n𢫬\tube\n𢱉\tucf\n𣐿\teti\n𣗋\tesp\n𣨼\tglw\n𣬂\tvveg\n𣭲\tktvm\n𣱼\tkpd\n𣱾\tkrl\n𣲗\tkgw\n𣲘\tkdu\n𣵦\tknqt\n𣸣\tknl\n𣸤\tkyl\n𤆬\tvch\n𤌙\tcoz\n𤘧\tqqn\n𤙖\tjdq\n𤛭\tqqqq\n𤞤\tmfc\n𤞶\tmwhe\n𤧛\tniw\n𤩽\tnnmm\n𤪌\tnzhi\n𤫉\tnsc\n𤭢\tzjjr\n𤯔\tfls\n𤯥\tbdls\n𤯦\ttpl\n𤱙\tqef\n𤲶\tqsq\n𤺥\tarj\n𤾩\tfufu\n𥄨\tqag\n𥇢\tqytj\n𥉳\tqbqt\n𥔲\tmdd\n𥕢\tmfy\n𥖄\tmgw\n𥖨\tmdde\n𥤶\tevq\n𥥷\tezd\n𥧔\tevp\n𥮾\trkm\n𥯨\trqh\n𥻗\tpeof\n𦈖\tioz\n𦈠\tiyu\n𦈡\title\n𦊞\tmbbd\n𦏴\tzfn\n𦒍\tidz\n𦒹\tqal\n𦙶\tvcg\n𦛨\tvlws\n𦝼\tvpbn\n𦠿\tvfm\n𦨩\titl\n𦭜\tldh\n𦰏\tlhe\n𦰡\tlaut\n𧊅\tcds\n𧋡\tcra\n𧋱\tcqs\n𧏾\tnlnc\n𧒽\tctq\n𧗩\tcpx\n𧝁\ttyz\n𧟄\tttd\n𧿹\tpkm\n𨃅\tpuf\n𨐈\tymg\n𨓈\tbduc\n𨙸\tcte\n𨚕\tklt\n𨛍\tyvt\n𨟠\tqqut\n𨭉\tvfpz\n𨰻\tzzzz\n𨱇\tzfk\n𨱍\tziit\n𨱏\tzlj\n𨱑\tznh\n𨱔\tzhy\n𨺙\ttppe\n𨻧\ttbq\n𩉜\ttoj\n𩠍\tqle\n𩫇\tcgg\n𩽾\twwb\n𩾃\twwpe\n𩾌\twxbk\n𪉈\tsvxn\n𪎊\tahyt\n𪚥\ttttt\n𪞝\twrus\n𪟝\taosl\n𪟧\tqsqs\n𪠽\tdybj\n𪣝\tgur\n𪣻\tgpb\n𪤗\tgzj\n𪥰\tbwa\n𪨇\tfpco\n𪨊\tcjj\n𪨗\tcwt\n𪨰\tvyq\n𪨶\tvmy\n𪩘\tvnmm\n𪯡\tdgv\n𪻐\tnjjr\n𪾔\tewam\n𪾢\tqej\n𪿖\tmzi\n𫁡\tixn\n𫄤\timu\n𫄥\tifv\n𫄧\tits\n𫄶\tibd\n𫄷\tixh\n𫄸\tilp\n𫇭\tlis\n𫉁\tlywr\n𫉄\tlsq\n𫊻\tcbk\n𫌀\ttaob\n𫌨\txye\n𫍙\tsey\n𫍟\tsee\n𫍢\tspf\n𫍣\tsmfd\n𫍯\tsnfd\n𫍲\tspg\n𫍽\tsyft\n𫐄\tyfp\n𫐐\typpe\n𫐓\tyit\n𫑡\tdte\n𫓧\tzhf\n𫓩\tzjjr\n𫓯\tzggt\n𫓶\tzdv\n𫓹\tzzhb\n𫔍\tztp\n𫔎\tzit\n𫔶\taoe\n𫖃\tbco\n𫖔\tglt\n𫖘\txkl\n𫖮\tvvw\n𫖯\tpwww\n𫖳\tbtdw\n𫖹\tnyfw\n𫗧\tqxs\n𫗫\tqcv\n𫗰\tqtk\n𫗴\tqzr\n𫘜\tnvw\n𫘝\tnnjr\n𫘤\tnko\n𫘦\tnnaf\n𫘧\tnbks\n𫘨\tnots\n𫘪\tnxu\n𫘬\tnyi\n𫚒\twtf\n𫚔\twrdk\n𫚕\twpf\n𫚖\tsvw\n𫚭\twops\n𫛞\txnj\n𫛩\twbx\n𫛭\tmnx\n𫛶\txsx\n𫜨\tlmb\n𫜩\tapl\n𫝭\tboob\n𫞩\tnlml\n𫟅\tigy\n𫟦\tyhj\n𫟹\tzlh\n𫟼\tzmu\n𫠊\tnziy\n𫠜\tlpp\n𫠡\tfjg\n𫠣\tryx\n𫢸\tjhq\n𫣊\tjyw\n𫧯\tydm\n𫩛\tdjjr\n𫪁\tdahb\n𫪘\tdnbe\n𫫇\tdfch\n𫭟\tgnb\n𫭢\tgjl\n𫭪\tgpf\n𫭼\tglws\n𫮃\tghqn\n𫯝\tyff\n𫰛\tbrug\n𫰡\tbjvn\n𫰰\tbjkf\n𫲦\thhdp\n𫵘\tchtp\n𫵷\tvxs\n𫵼\tvfob\n𫶇\tvlwr\n𫷷\txze\n𫸩\tbnbi\n𫼝\tuxbj\n𬀩\togw\n𬀪\toej\n𬂁\tvbt\n𬂉\tvhho\n𬂩\tehh\n𬃊\texno\n𬆮\tgwfr\n𬇕\tkfpd\n𬇙\tkob\n𬇞\tkfmj\n𬇹\tkrn\n𬉼\tcnb\n𬊈\tcbkc\n𬊤\tchqn\n𬊶\tcpr\n𬌗\tljdk\n𬍛\tnby\n𬍡\tkaei\n𬍤\tnbkc\n𬎆\tnlw\n𬑗\tqaor\n𬒈\tkwms\n𬒔\tmsv\n𬒗\tmpr\n𬕂\truob\n𬖋\tpai\n𬖞\tpok\n𬘓\tioc\n𬘘\tiwp\n𬘡\tirmd\n𬘢\timg\n𬘩\titgu\n𬘫\tiwm\n𬘬\tiavy\n𬘭\tiee\n𬘯\tighi\n𬘵\tihff\n𬙂\tiwfh\n𬙆\titpq\n𬙊\tipgt\n𬙋\titdf\n𬜬\tlad\n𬜯\tlml\n𬞟\tlssw\n𬟁\tlnxn\n𬟽\tcryx\n𬢊\tafde\n𬢋\tpwwe\n𬣀\tpgs\n𬣙\tsfn\n𬣞\tswfi\n𬣡\tsfp\n𬣳\tsig\n𬤇\tsvg\n𬤊\tsot\n𬤝\tsnq\n𬤨\tsdde\n𬧀\tpal\n𬨂\tybs\n𬨎\tyhy\n𬩽\tbkte\n𬪍\tbote\n𬪩\tywt\n𬬩\tzpi\n𬬫\tzvvb\n𬬭\tzjl\n𬬮\tzpc\n𬬰\tzjz\n𬬱\tztj\n𬬸\tzei\n𬬹\tzog\n𬬺\tzfq\n𬬻\tzyc\n𬬿\tzpdk\n𬭁\tzkm\n𬭊\tzeg\n𬭍\tzoeg\n𬭎\tzwn\n𬭚\tzghi\n𬭛\tzkr\n𬭣\tzuk\n𬭤\tzjno\n𬭨\tztku\n𬭩\tzhk\n𬭬\tzaa\n𬭯\tzfh\n𬭳\tzhdk\n𬭶\tzph\n𬭸\tzpl\n𬭼\tzhj\n𬮤\tajdk\n𬮱\tavg\n𬮴\taxy\n𬮿\ttvvj\n𬯀\ttqqe\n𬯎\ttcob\n𬱖\tdwy\n𬱟\txxzw\n𬲱\tqwv\n𬲽\tqzh\n𬳇\tqwf\n𬳵\tncf\n𬳶\tnmdk\n𬳽\tnqpe\n𬳿\tnjx\n𬴂\tnrfm\n𬴃\tnam\n𬴊\tnplv\n𬶋\twgj\n𬶍\twwv\n𬶏\twxx\n𬶐\twpw\n𬶟\twxp\n𬶠\twxhb\n𬶨\tidw\n𬶭\twhfs\n𬶮\twhd\n𬷕\tnxn\n𬸅\txbx\n𬸘\tnobx\n𬸚\tmsmx\n𬸣\twqhx\n𬸦\tleox\n𬸪\ttpqx\n𬹼\tljpd\n𬺈\tlmzk\n𬺓\tleet\n𭄹\tisq\n𭎂\tgjj\n𭑵\tisb\n𭚦\tbxg\n𭣇\tunq\n𭱊\tkuw\n𮆏\trax\n𮉧\timl\n𮉨\tidmj\n𮉪\tiqr\n𮉫\tixbn\n𮉬\tizjn\n𮉯\tihf\n𮐨\tloob\n𮔂\tclz\n𮔅\tcxo\n𮔊\tcml\n𮖱\ttgdw\n𮙊\tstx\n𮙋\tsnas\n𮝴\tyyg\n𮝵\tyle\n𮝹\tyyf\n𮣲\tzug\n𮣳\tznks\n𮣴\tzts\n𮤲\taht\n𮧴\tgpc\n𮧵\tgjv\n𮩝\tqon\n𮩞\tqgw\n𮪥\tnghh\n𮬝\twvl\n𮬡\twfg\n𮭦\tvjax\n𮭨\towbx\n𮯙\tlzkc\n𮰃\tjge\n𮱡\tyhi\n𮳺\tqnm\n𮷛\tyyyc\n𮸽\tcccf\n𰁸\tjybj\n𰂎\tjavy\n𰃷\twjzj\n𰇣\tdrp\n𰌀\tlwbn\n𰌂\tbyo\n𰞇\tcrus\n𰟘\tcaxp\n𰡘\tmjao\n𰣊\tqsn\n𰨖\tfotw\n𰪿\tplw\n𰬪\tikm\n𰯼\tpmfo\n𰵝\tsxh\n𰵞\tsik\n𰵤\tssg\n𰵦\tsab\n𰵧\tsghx\n𰵩\tsnf\n𰵴\tsyfr\n𰵼\tslv\n𰷥\twfob\n𰹲\tydk\n𰻝\tesi\n𰽗\tzfns\n𰽚\tzxg\n𰽴\tzmm\n𰽼\tzhl\n𰽽\tzgy\n𰾫\tzpra\n𱁬\ttbtt\n𱂨\twbw\n𱂩\tnwy\n𱂱\tnfdw\n𱃱\tqea\n𱃺\tqas\n𱅋\tnqe\n𱇑\twfr\n𱇒\twvvb\n𱇣\twsr\n𱇫\tbdw\n𱇮\twlfw\n𱇱\tjghw\n𱇻\twxpj\n𱈃\twqvy\n𱈌\twga\n𱉻\tybx\n𱊊\teux\n𱊌\tccx\n𱊬\tyncx\n𱊳\tqqqx\n𱌮\tlgj\n𱎼\tjtg\n𱏿\twdk\n𱑞\txlw\n𱖇\tgeg\n𱖎\tgtmd\n𱖒\tgfpg\n𱗩\tgiu\n𱘩\tzjvd\n𱚦\tybm\n𱛥\tvqp\n𱞍\tthx\n𱟛\tsii\n𱟻\tupu\n𱤏\teeee\n𱥂\tfsfs\n𱫉\tcpu\n𱮒\tmlj\n𱮸\tndp\n𱯄\tnwn\n𱯍\tnzz\n𱰛\tlqss\n𱰾\tqsu\n𱳪\tmmid\n𱸇\trlws\n𱸥\trip\n𱹍\tpze\n𲀃\tcvvv\n𲄗\tazs\n𲄚\tzpc\n𲈗\tzxn\n𲈵\taks\n𲉅\taxbd\n𲋤\tqpdk\n𲍭\tfsx\n𲍿\tzjvx\n臸\tyyii\n𠕇\tnvys\n玊\tnidw\n鲕\twlev\n舁\tplcj\n砦\tsvms\n個\tjrc\n𱏱\tjam\n並\thcy\n邛\tuteg\n別\tdpp\n裏\ttdl\n車\tycc\n機\teiii\n萬\tlqv\n羣\tbtdg\n團\trnq\n價\tjvob\n蘇\tlwxh\n隻\tury\n嬲\tqsb\n廣\txnh\n鬥\tjd\n蟲\tcccc\n紮\teais\n箇\trrc\n墫\tghy\n夶\tmmd\n𠬝\tzry\n𰉄\tdqpo\n𰪭\tppc\n𰱱\tlweo\n㐄\tvkk\n㐫\tzbmk\n㐬\tboc\n㒸\thjs\n㓁\twhb\n㚅\thfl\n㚐\tmmd\n䍃\tyaf\n䛐\tafds\n䠀\tpss\n䵤\tflph\n丂\tfae\n乭\tmai\n亇\txgs\n儍\tjpmh\n冡\twfj\n凢\ttoj\n凣\tgoj\n卂\tans\n叾\trdk\n吅\tddk\n咅\tidk\n唈\tddmb\n啇\timc\n堦\tgvvu\n壿\tghyk\n夋\tkhhi\n夌\tghhi\n姧\tbbeg\n娰\tbjvj\n嫐\tbqsb\n嬥\tbzui\n尃\tnkc\n尞\tmhoy\n屰\thsc\n巟\tfoc\n巣\tkqem\n弜\tbbg\n弮\thhbg\n怱\tneih\n挙\tkhus\n掔\tqru\n撧\tuixm\n擷\tugdw\n旉\tnlf\n晻\tomo\n桺\tebm\n椊\tezjn\n楛\telc\n榝\tebe\n欮\thse\n氷\tiks\n汙\tkfn\n沬\tkaw\n泬\tkex\n湨\tkqmq\n炏\tcch\n烎\tflch\n爢\tzrch\n玨\tnnw\n珶\tnhtf\n瓱\trvm\n甇\tccwr\n畐\tfdqt\n癈\tahbr\n砿\tmxk\n磓\tmtku\n礽\tfvn\n窌\tebm\n筳\trtg\n箠\trllg\n篲\traa\n篿\trnqk\n粦\tplvk\n紥\tuais\n繣\tibq\n罙\twhem\n翽\tsnfz\n芻\tnsns\n荅\tljdk\n菻\tleem\n葹\tllee\n薆\tlywh\n虖\tzthn\n蜰\tvmcc\n裲\ttml\n踠\tpwl\n蹌\tpjm\n鋪\tznf\n雔\tuui\n靆\ttbbu\n韮\tlrfi\n顚\tvqaw\n髣\tpel\n髴\tpet\n鼱\tpavy\n齌\tqch\n𠂇\tns\n𠬤\trus\n𡨄\twqhb\n𡰪\tcdk\n𤯕\tlbn\n𥫗\tru\n𥹂\tpcf\n𨂿\tpcfs\n𨑨\touc\n𫄨\tibnr\n𫏋\tptmp\n𫠆\tcwy\n𲂎\tsuub\n㙳\tgnfh\n㥯\tyub\n㮙\tedda\n䍺\tgddh\n䎣\tavjr\n䒩\tlxh\n䔽\tlkof\n䞩\tpjdk\n𣎆\tfdvo\n飜\ttpqc";
+    const TIGER_FREQUENCY = "的一是不了在我人他这有个大上中来地和说为们到你就也以国那要时出着可道之对会自而得下能过生子于年后发都里没还所去看事如用小作多行只好成家天她方然当心起种想经现但法无同么进学面其前已主从动分把开军又两本因定部与将日长理三些实样十意知此第力很正高手什身被它明老者公见机向问最使全点情外民并战关工回等相二重由头声性应间话文给美业物真体或政几内利打走新位西再产加月却先制特果东神儿才门太合信表原女更己名立比代四斯任次世便听提做海水教眼化通感王各口气别少处平常解何接目反变笑总入认条安金及度让山马受活结数直必白指张报论员义放电至五系难命建尔件死保完许题场空计怎光管非德强量决形像期资队清务嗯统书市司师住即克带飞南区李则觉交社今基北展传连叫治路万告科呢思达记转望边快风色该界象权拉设且取干收步领林根往亲极求未每程式兵据类言规吧品确观城虽失格远办元运令共似准请武士改英术车石深联争吗院轻火罗百夫离花近切识造组流算布导早找候满服官整爱字持跟突影消随吃商证单议越存击精济始台黑调需支杀团功具华脸府集周青红双九八片半容曾啊阿落显除尽党照众备复陈断价约写包级另病质称倒江绝敌黄技六朝派线站究装亚首刚示视况增谈惊古史谁引须七息研际器易留推坐房广注查语念若奇紧企希委响号参势历剑攻冷投哪农专图考选终微皇土局星足刘甚严医男营乎仅父拿孩答费标依兴低千仍急护竟某较防列讲破客施故血节云龙钱苏母伤举族按维修帝河威巴划致案革底送冲音态够段构群船责苦章律愿围京衣喜独效斗细怕志米晚热项料例灵密害供属验境毛般居继错沉采既察否批脑夜股速纪续假帮乐陆型退友铁汉暗状左句雷网率值普承停试弹止职药久印卫助掌织阳待初追木哈您预刻创诉简射限球差树校兰怪阵异宗波育激担顿游充银适省胡食警素尼排负背忽酒穿福弟怀欢环招模胜痛习险财益宝脚疑乱赶坚获劳挥敢置右压香层略静村范源副州纳岁罪余闻占玉哥杨忙兄守跑述座田摇超演皮喝买佛室角卡封策块富判配姑优征善刀娘降恶宣慢积草恐妈读靠阶楚姐爸执呼协洲巨免检养顾救份控抗著赵肯露换登伊犯尚莫危审掉亦沙散欧唐枪宫魔耳屋永孙临圣叶毫宋谢讨温嘴航毒呀野逃托伯索岛贵顺楼遇良朋坏亮户景烈闪礼艺互丝秘渐架鱼升抓监君短梦隐困税洋鬼炮舰付诸货松归败幸概寻评吸恩介朱探县脱移缺画误释旁跳藏春睡吉端味杂翻雪遗款刺附爷核央减阴编版智齐雨徐鲁仙湖钟蒙丽班咱康损震借固诗镇吴域均秦妇鲜序烟洞猛测练旧堂笔饭顶灭庄括怒补逐毕席禁剧乡湾卖牛避欲弄忍旅暴虚额含忘抱油肉输洛祖缓迎虎票销婚乃板冰伸录遍虑宁臣玩熟谷予谋炸督奥狂亡港庭博材俄韩混词盘尊寒遭训拍麻荣卷夏谓凡私厂丁骨牙休迫授替拥摆默勒泽骑疗睛店载诺健扬纸透床唯岸迅尤稳园徒伦坦择蓝握抵姓郑弱软绿叹轮束盖丈篇午窗歌雄森醒伙残戏妻折甲啦套塔馆秋梅迷典灯厉秀扩曲努潜街硬宇哭阻萨纵喊搞冒罢盛塞妹萧桌圆纷悲鼓淡访础杜宽拜犹抽刑偏奔侵延懂蒋针抬舞赞侧赛纯申夺柳距丹仿川途曹购亿乌胸浪贝偷姆竞茶末毁烧伟库弃墙雅贸沿爆振趣操诚挑杰轰盟勇敬狗恨迹呆疾哲促麦横丰闭撤析挂彩埃召童摩乘符筑眉侠袭孤培耶染稍妙凶页戴洗陷络植厚措瓦援汇触售违粮泪彻洪献魂抢玄巧珠劲彼摸凭暂碰皆尖忠奉享聚胆厅闹灰津倾订鸟扑孔汽吓驻叔凤紫妖凌唱梁箭融殊课莱奴扫肩鼻庆镜菜恢御烦裁估隔尸尾仪瞧迟圈译骂珍币惨剩愈飘荒惯缘曼舍季旗艾牌恰废腰腿玛累涉燕朗颗签吹罚拒仰描杯奖奋奶贫甘婆繁穷伏幕殿沈绍启缩粗弗患仇债碎挺泰羊旋晓障桥仁郎孟讯虫郭幻赫裂凝颜刊慈吕昨辛役逼泛瑞伴袁翼舒宜偶峰径岂潮捕辆邪症颇插袋爬掩霍浮倍壮豪拔拖渡悄堆鸡狼播零躲映灾尺俗疯丧冬辩炎咬码猜壁艘滚贴赏劝兽番哼撞伍柔旦跃隆魏狠糊扎忧衡帐崇汗赖薄净粉岩忆堡巡仔欣偿愤阁详喵竹漫爹董撒佩丢绕赤";
+    const DOM = Object.fromEntries(Object.entries({
+        characterDisplay: 'character-display', hintDisplay: 'hint-display',
+        feedbackDisplay: 'feedback-display', statusDisplay: 'status-display',
+        typingInput: 'typing-input', dictSelect: 'dict-select', textSelect: 'text-select',
+        dictUpload: 'dict-upload', uploadDictBtn: 'upload-dict-btn',
+        practiceTextInput: 'practice-text-input', startPracticeBtn: 'start-practice-btn',
+        stats: 'stats', inputArea: 'input-area', clearProgressBtn: 'clear-progress-btn',
+        customTextControls: 'custom-text-controls', exitPracticeBtn: 'exit-practice-btn',
+        importProgressBtn: 'import-progress-btn', exportProgressBtn: 'export-progress-btn',
+        importFileInput: 'import-file-input', sessionStats: 'session-stats',
+        themeToggle: 'theme-toggle', codeLength: 'code-length', newLimit: 'new-limit',
+        submitBtn: 'submit-btn', hintBtn: 'hint-btn', sessionGuide: 'session-guide',
+        dictDescription: 'dict-description', removeDictBtn: 'remove-dict-btn',
+        practiceMode: 'practice-mode', inputMode: 'input-mode', autoDelay: 'auto-delay',
+        newLimitRow: 'new-limit-row', autoDelayRow: 'auto-delay-row', lengthStats: 'length-stats'
+    }).map(([key, id]) => [key, document.getElementById(id)]));
+
+    const MINUTE = 60000;
+    const MAX_INTERVAL = 30 * 24 * 60;
+    const FLUENT_RECALL_MS = 2000;
+    const FLUENT_KEY_GAP_MS = 1200;
+    // FSRS-6 equations/default weights: https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm
+    // Minute-scale learning steps and character gaps below are CodeGlyph's typing-specific policy.
+    const FSRS_WEIGHTS = [0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001,
+        1.8722, 0.1666, 0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425, 0.0912, 0.0658, 0.1542];
+    const DESIRED_RETENTION = 0.9, DAY = 24 * 60 * MINUTE;
+    const LEARNING_DELAYS = [0, MINUTE, 10 * MINUTE];
+    let dictionary = Object.create(null), practiceSet = [];
+    let currentProfile = {}, currentProfileId = 'tiger_sentence';
+    let profiles = {}, customDictionaries = {};
+    let currentCharacter = null, phase = 'idle', isLoading = false;
+    let sessionQueue = [], sessionMistakeQueue = [];
+    let sessionStats = {}, question = null, storageError = false;
+    let selectionVersion = 0;
+    let autoSubmitTimer = null, advanceTimer = null, hesitationTimer = null;
+    let continuousRecent = [], previousRecallResult = null;
+    const EMPTY_STAT = normalizeStat();
+
+    function localDay() {
+        const date = new Date();
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    }
+
+    function readStoredJSON(key, fallback) {
+        const value = localStorage.getItem(key);
+        return value === null ? fallback : JSON.parse(value);
+    }
+
+    function store(key, value) {
+        try {
+            localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+            return true;
+        } catch (error) {
+            storageError = true;
+            showStatusMessage('进度未能保存，请先导出进度备份，再检查浏览器存储空间。', { isError: true });
+            syncControls();
+            return false;
+        }
+    }
+
+    function normalizeStat(raw = {}) {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('无效的字符进度');
+        const stat = { ...raw };
+        for (const key of ['successCount', 'failCount', 'lastPracticed', 'nextReview', 'streak',
+            'fluentCount', 'slowCount', 'hintCount', 'overtypedCount', 'correctedCount',
+            'totalRecallMs', 'recallSamples', 'lastRecallMs', 'stability', 'difficulty', 'memoryReviewedAt']) {
+            const value = raw[key] === undefined ? 0 : raw[key];
+            if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) throw new Error('无效的字符进度');
+            stat[key] = value;
+        }
+        const interval = raw.interval === undefined ? 1 : raw.interval;
+        if (typeof interval !== 'number' || !Number.isFinite(interval) || interval < 0) throw new Error('无效的复习间隔');
+        stat.interval = Math.min(MAX_INTERVAL, Math.max(1, interval));
+        stat.learningStep = raw.learningStep === undefined ? 3 : raw.learningStep;
+        if (![0, 1, 2, 3].includes(stat.learningStep) || stat.difficulty > 10 ||
+            (stat.difficulty > 0 && stat.difficulty < 1) || stat.stability > 36500) throw new Error('无效的记忆状态');
+        // Old backups have no review history: approximate memory state, retaining their due dates/counters.
+        if (raw.stability === undefined && stat.successCount > 0 && stat.lastPracticed > 0) {
+            stat.stability = Math.min(36500, Math.max(0.001, stat.interval / 1440));
+            stat.difficulty = 5;
+            stat.memoryReviewedAt = stat.lastPracticed;
+        }
+        if (raw.introducedOn !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(raw.introducedOn)) throw new Error('无效的新字日期');
+        return stat;
+    }
+
+    function normalizeProfiles(raw) {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('无效的进度格式');
+        const result = Object.create(null);
+        for (const [id, profile] of Object.entries(raw)) {
+            if (!profile || typeof profile !== 'object' || Array.isArray(profile)) throw new Error('无效的码表进度');
+            result[id] = Object.create(null);
+            for (const [char, stat] of Object.entries(profile)) {
+                if ([...char].length !== 1) throw new Error('无效的字符');
+                result[id][char] = normalizeStat(stat);
+            }
+        }
+        return result;
+    }
 
     function getCharStat(char) {
-        if (!currentProfile[char]) {
-            currentProfile[char] = { successCount: 0, failCount: 0, lastPracticed: 0, interval: 1, nextReview: 0 };
-        }
+        if (!currentProfile[char]) currentProfile[char] = normalizeStat();
         return currentProfile[char];
+    }
+
+    function peekCharStat(char) {
+        return currentProfile[char] || EMPTY_STAT;
+    }
+
+    function isContinuous() {
+        return DOM.practiceMode.value === 'continuous';
+    }
+
+    function isAutomatic() {
+        return DOM.inputMode.value === 'auto';
+    }
+
+    function getAutoDelay() {
+        const delay = Number(DOM.autoDelay.value);
+        return [150, 250, 400, 600].includes(delay) ? delay : 250;
+    }
+
+    function cancelQuestionTimers() {
+        clearTimeout(autoSubmitTimer);
+        clearTimeout(advanceTimer);
+        clearTimeout(hesitationTimer);
+        autoSubmitTimer = null;
+        advanceTimer = null;
+        hesitationTimer = null;
+    }
+
+    function updatePracticeControls() {
+        DOM.typingInput.placeholder = isAutomatic() ? '输入编码，停键后自动判题' : '输入编码，再按空格或 Enter 提交';
+        DOM.newLimitRow.hidden = isContinuous();
+        DOM.autoDelayRow.hidden = !isAutomatic();
+        DOM.startPracticeBtn.textContent = isContinuous() ? '开始连续练习' : '开始本轮复习';
+        updateStats();
+    }
+
+    function isLearned(stat) {
+        return stat.lastPracticed > 0 || stat.successCount > 0 || stat.failCount > 0 || Boolean(stat.introducedOn);
+    }
+
+    function getTargetCodes(char) {
+        const codes = dictionary[char] || [];
+        const shortest = Math.min(...codes.map(code => code.length));
+        return codes.filter(code => code.length === shortest);
+    }
+
+    function newCharactersToday() {
+        const today = localDay();
+        return Object.values(currentProfile).filter(stat => stat.introducedOn === today).length;
+    }
+
+    function getNewLimit() {
+        const value = Number(DOM.newLimit.value);
+        return Number.isFinite(value) ? Math.min(100, Math.max(0, Math.floor(value))) : 20;
+    }
+
+    function getPracticeSet() {
+        const length = Number(DOM.codeLength.value);
+        return [...new Set([...DOM.practiceTextInput.value])].filter(char =>
+            /\p{Script=Han}/u.test(char) && dictionary[char] &&
+            (!length || getTargetCodes(char)[0].length === length));
+    }
+
+    function showStatusMessage(message, { isError = false } = {}) {
+        DOM.statusDisplay.textContent = message;
+        DOM.statusDisplay.classList.toggle('status-error', isError);
+    }
+
+    function syncControls() {
+        DOM.startPracticeBtn.disabled = isLoading || storageError;
+        DOM.dictSelect.disabled = isLoading;
+        DOM.uploadDictBtn.disabled = isLoading;
+        DOM.importProgressBtn.disabled = isLoading;
+        DOM.removeDictBtn.hidden = !customDictionaries[DOM.dictSelect.value];
+        DOM.removeDictBtn.disabled = isLoading || storageError;
+    }
+
+    function saveCurrentProfileProgress() {
+        profiles[currentProfileId] = currentProfile;
+        return store('codeGlyphProfiles', profiles);
+    }
+
+    function loadCurrentProfileProgress() {
+        currentProfile = profiles[currentProfileId] || Object.create(null);
+    }
+
+    function updateStats() {
+        const chars = getPracticeSet();
+        const now = Date.now();
+        const due = chars.filter(char => isLearned(peekCharStat(char)) && peekCharStat(char).nextReview <= now).length;
+        const unseen = chars.filter(char => !isLearned(peekCharStat(char))).length;
+        DOM.stats.textContent = `本范围 ${chars.length} 字 · 到期 ${due} · 未学 ${unseen}` +
+            (isContinuous() ? ' · 连续练习不限量' : ` · 今日新字 ${newCharactersToday()}/${getNewLimit()}`);
+        const counts = Object.create(null);
+        chars.forEach(char => {
+            const length = getTargetCodes(char)[0].length;
+            counts[length] = (counts[length] || 0) + 1;
+        });
+        const labels = { 1: '一码', 2: '二码', 3: '三码', 4: '四码' };
+        DOM.lengthStats.textContent = Object.entries(counts).map(([length, count]) => `${labels[length] || `${length}码`} ${count} 字`).join(' · ');
+    }
+
+    function shuffle(items) {
+        const result = [...items];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    }
+
+    function buildSessionQueue() {
+        const now = Date.now();
+        const due = practiceSet.filter(char => isLearned(peekCharStat(char)) && peekCharStat(char).learningStep === 3 && peekCharStat(char).nextReview <= now)
+            .sort((a, b) => peekCharStat(a).nextReview - peekCharStat(b).nextReview);
+        const newChars = mixedNewCharacters(Math.max(0, getNewLimit() - newCharactersToday()));
+        const queue = [];
+        // Review first, then introduce one new character between up to three reviews.
+        while (due.length || newChars.length) {
+            queue.push(...due.splice(0, 3).map(char => ({ char, kind: 'review' })));
+            if (newChars.length) queue.push({ char: newChars.shift(), kind: 'new' });
+        }
+        return queue;
+    }
+
+    function mixedNewCharacters(limit) {
+        return shuffle(practiceSet.filter(char => !isLearned(peekCharStat(char)))).slice(0, limit);
+    }
+
+    function continuousWeight(char) {
+        const stat = peekCharStat(char);
+        const base = !isLearned(stat) ? 3 : stat.nextReview <= Date.now() ? 4 : 1;
+        return base * (1 + 3 * stat.failCount / (stat.successCount + stat.failCount + 1) +
+            stat.slowCount / (stat.successCount + 1));
+    }
+
+    function getContinuousTask() {
+        const waiting = new Set(sessionMistakeQueue.map(item => item.char));
+        let candidates = practiceSet.filter(char => !continuousRecent.includes(char) && !waiting.has(char));
+        if (!candidates.length) candidates = practiceSet.filter(char => char !== currentCharacter && !waiting.has(char));
+        if (!candidates.length) candidates = practiceSet.filter(char => !waiting.has(char));
+        if (!candidates.length) candidates = practiceSet.filter(char => char !== currentCharacter);
+        if (!candidates.length) candidates = practiceSet;
+        const pool = candidates;
+        const weights = pool.map(continuousWeight);
+        let pick = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
+        let char = pool[pool.length - 1];
+        for (let i = 0; i < pool.length; i++) {
+            pick -= weights[i];
+            if (pick <= 0) { char = pool[i]; break; }
+        }
+        return { char, kind: 'continuous' };
     }
 
     function getNextChar() {
         const now = Date.now();
-        
-        // Priority 1: Review mistakes from current session
-        if (sessionMistakeQueue.length > 0 && Math.random() < 0.6) {
-            const char = sessionMistakeQueue.shift();
-            if (practiceSet.includes(char)) return char;
+        const ready = sessionMistakeQueue.filter(item => item.readyAfter <= sessionStats.answered &&
+            peekCharStat(item.char).nextReview <= now).sort((a, b) => {
+                const sa = peekCharStat(a.char), sb = peekCharStat(b.char);
+                return Number(sa.learningStep !== 0) - Number(sb.learningStep !== 0) ||
+                    sa.nextReview - sb.nextReview || a.readyAfter - b.readyAfter;
+            });
+        const retryIndex = ready.length ? sessionMistakeQueue.indexOf(ready[0]) : -1;
+        if (retryIndex !== -1) return sessionMistakeQueue.splice(retryIndex, 1)[0];
+        if (isContinuous()) {
+            // A due memory review has a guaranteed place, rather than competing with 500 random characters.
+            const due = practiceSet.filter(char => peekCharStat(char).learningStep === 3 && isLearned(peekCharStat(char)) &&
+                peekCharStat(char).nextReview <= now && char !== currentCharacter && !continuousRecent.slice(-2).includes(char));
+            if (due.length) {
+                const earliest = Math.min(...due.map(char => peekCharStat(char).nextReview));
+                const pool = due.filter(char => peekCharStat(char).nextReview === earliest);
+                return { char: pool[Math.floor(Math.random() * pool.length)], kind: 'review' };
+            }
         }
-        
-        // Priority 2: Characters due for review (sorted by urgency)
-        const dueChars = practiceSet
-            .filter(char => getCharStat(char).nextReview <= now && getCharStat(char).successCount > 0)
-            .sort((a, b) => getCharStat(a).nextReview - getCharStat(b).nextReview);
-        
-        if (dueChars.length > 0 && Math.random() < 0.7) {
-            return dueChars[0];
+        return isContinuous() ? getContinuousTask() : sessionQueue.shift() || null;
+    }
+
+    function queueLearning(char, gap = 1) {
+        sessionMistakeQueue = sessionMistakeQueue.filter(item => item.char !== char);
+        sessionQueue = sessionQueue.filter(item => item.char !== char);
+        sessionMistakeQueue.push({ char, kind: 'learning', readyAfter: sessionStats.answered + gap });
+    }
+
+    function startRelearning(stat, now, gap) {
+        stat.learningStep = 0;
+        stat.streak = 0;
+        stat.interval = 1;
+        stat.nextReview = now;
+        queueLearning(currentCharacter, gap);
+    }
+
+    function memoryRetrievability(stat, now) {
+        if (!stat.stability || !stat.memoryReviewedAt) return 0;
+        const elapsedDays = Math.max(0, (now - stat.memoryReviewedAt) / DAY);
+        const decay = FSRS_WEIGHTS[20], factor = Math.pow(0.9, -1 / decay) - 1;
+        return Math.pow(1 + factor * elapsedDays / stat.stability, -decay);
+    }
+
+    function reviewMemory(stat, rating, now) {
+        const w = FSRS_WEIGHTS;
+        const initialDifficulty = grade => Math.min(10, Math.max(1, w[4] - Math.exp(w[5] * (grade - 1)) + 1));
+        const s = stat.stability, d = stat.difficulty || initialDifficulty(rating);
+        if (!s) {
+            stat.stability = w[rating - 1];
+            stat.difficulty = initialDifficulty(rating);
+        } else {
+            const elapsedDays = Math.max(0, (now - stat.memoryReviewedAt) / DAY);
+            const r = memoryRetrievability(stat, now);
+            if (elapsedDays < 1) {
+                const growth = Math.exp(w[17] * (rating - 3 + w[18])) * Math.pow(s, -w[19]);
+                stat.stability = s * (rating >= 2 ? Math.max(1, growth) : growth);
+            } else if (rating === 1) {
+                stat.stability = Math.min(s, w[11] * Math.pow(d, -w[12]) *
+                    (Math.pow(s + 1, w[13]) - 1) * Math.exp(w[14] * (1 - r)));
+            } else {
+                stat.stability = s * (1 + Math.exp(w[8]) * (11 - d) * Math.pow(s, -w[9]) *
+                    (Math.exp(w[10] * (1 - r)) - 1) * (rating === 2 ? w[15] : 1));
+            }
+            const damped = d - w[6] * (rating - 3) * (10 - d) / 9;
+            stat.difficulty = Math.min(10, Math.max(1, w[7] * initialDifficulty(4) + (1 - w[7]) * damped));
         }
-        
-        // Priority 3: New characters (never practiced)
-        const newChars = practiceSet.filter(char => getCharStat(char).successCount === 0 && getCharStat(char).failCount === 0);
-        if (newChars.length > 0 && Math.random() < 0.5) {
-            return newChars[Math.floor(Math.random() * Math.min(5, newChars.length))];
+        stat.stability = Math.min(36500, Math.max(0.001, stat.stability));
+        stat.memoryReviewedAt = now;
+    }
+
+    function scheduleMemoryReview(stat, now) {
+        const decay = FSRS_WEIGHTS[20], factor = Math.pow(0.9, -1 / decay) - 1;
+        const days = stat.stability / factor * (Math.pow(DESIRED_RETENTION, -1 / decay) - 1);
+        stat.learningStep = 3;
+        stat.interval = Math.min(MAX_INTERVAL, Math.max(1440, Math.round(days * 1440)));
+        stat.nextReview = now + stat.interval * MINUTE;
+    }
+
+    function scheduleAnswer(stat, result, now) {
+        const rating = result === '流畅' ? 3 : result === '犹豫' ? 2 : 1;
+        const wasDue = stat.nextReview <= now;
+        if (rating !== 3 || !stat.stability || wasDue) reviewMemory(stat, rating, now);
+        if (rating === 1) {
+            startRelearning(stat, now, 1); // One other answer before an early retry.
+        } else if (rating === 2) {
+            if (!question.hesitationRecorded) recordHesitation();
+        } else if (wasDue && stat.learningStep < 3) {
+            stat.streak++;
+            stat.learningStep++;
+            if (stat.learningStep < 3) {
+                stat.nextReview = now + LEARNING_DELAYS[stat.learningStep];
+                stat.interval = LEARNING_DELAYS[stat.learningStep] / MINUTE;
+                queueLearning(currentCharacter);
+            } else scheduleMemoryReview(stat, now);
+        } else if (wasDue) {
+            stat.streak++;
+            if (stat.successCount === 1 && stat.failCount === 0 && stat.slowCount === 0) {
+                stat.learningStep = 2;
+                stat.interval = 10;
+                stat.nextReview = now + LEARNING_DELAYS[2];
+                queueLearning(currentCharacter);
+            } else scheduleMemoryReview(stat, now);
         }
-        
-        // Priority 4: Weighted random selection
-        const weights = practiceSet.map(char => {
-            const stat = getCharStat(char);
-            const timeSinceReview = now - stat.lastPracticed;
-            const failWeight = 1 + stat.failCount * 2;
-            const timeWeight = Math.min(3, timeSinceReview / (stat.interval * 60000 * 0.5));
-            return Math.max(0.1, failWeight * timeWeight);
-        });
-        
-        const totalWeight = weights.reduce((a, b) => a + b, 0);
-        let random = Math.random() * totalWeight;
-        
-        for (let i = 0; i < practiceSet.length; i++) {
-            random -= weights[i];
-            if (random <= 0) return practiceSet[i];
-        }
-        
-        return practiceSet[Math.floor(Math.random() * practiceSet.length)];
     }
 
     function updateSessionStats() {
-        const total = sessionCorrectCount + sessionWrongCount;
-        DOM.sessionCorrect.textContent = sessionCorrectCount;
-        DOM.sessionWrong.textContent = sessionWrongCount;
-        DOM.sessionAccuracy.textContent = total > 0 ? Math.round(sessionCorrectCount / total * 100) + '%' : '0%';
-    }
-
-    function handleInputComplete(isCorrect, userInput) {
-        const stat = getCharStat(currentCharacter);
-        const now = Date.now();
-        stat.lastPracticed = now;
-        
-        if (isCorrect) {
-            stat.successCount++;
-            sessionCorrectCount++;
-            updateSessionStats();
-            // SM-2 style interval calculation
-            if (stat.interval < 1) stat.interval = 1;
-            else if (stat.interval === 1) stat.interval = 6;
-            else stat.interval = Math.round(stat.interval * 2.5);
-            
-            // Cap at 30 days
-            stat.interval = Math.min(stat.interval, 30 * 24 * 60);
-        } else {
-            stat.failCount++;
-            stat.interval = 1;
-            sessionWrongCount++;
-            updateSessionStats();
-            flashFeedback(false);
-            
-            // Add to session mistake queue for review
-            if (!sessionMistakeQueue.includes(currentCharacter)) {
-                sessionMistakeQueue.push(currentCharacter);
-            }
-            
-            // Show hint
-            const codes = dictionary[currentCharacter];
-            DOM.hintDisplay.textContent = `${currentCharacter} → ${codes ? codes.join(' / ') : '?'}`;
-            DOM.hintDisplay.classList.add('status-error');
-        }
-        
-        stat.nextReview = now + stat.interval * 60000;
-        saveCurrentProfileProgress();
-        updateStats();
-        
-        // If there's a hint showing (shorter code or error), give more time to read
-        const hasHint = DOM.hintDisplay.textContent !== '';
-        const delay = isCorrect ? (hasHint ? 800 : 100) : 800;
-        setTimeout(() => {
-            DOM.hintDisplay.textContent = '';
-            DOM.hintDisplay.classList.remove('status-error', 'status-success');
-            nextCharacter();
-        }, delay);
-    }
-    
-    function showStatusMessage(msg, options = {}) {
-        DOM.hintDisplay.textContent = msg;
-        DOM.hintDisplay.classList.remove('status-success', 'status-error');
-        if (options.isError) DOM.hintDisplay.classList.add('status-error');
-        else if (options.isSuccess) DOM.hintDisplay.classList.add('status-success');
-        
-        if (!options.persistent) {
-            setTimeout(() => {
-                DOM.hintDisplay.textContent = '';
-                DOM.hintDisplay.classList.remove('status-success', 'status-error');
-            }, options.duration || 2000);
-        }
-    }
-
-    async function fetchRemoteDict(urls) {
-        DOM.startPracticeBtn.disabled = true;
-        showStatusMessage('正在加载远程码表...', { persistent: true });
-        try {
-            const responses = await Promise.all(urls.map(url => fetch(url)));
-            const allContents = await Promise.all(responses.map(r => r.text()));
-            allContents.forEach(contents => parseAndMergeDict(contents));
-            showStatusMessage(`码表加载完成 (${Object.keys(dictionary).length}字)`, { isSuccess: true });
-        } catch (error) {
-            showStatusMessage(`码表加载失败: ${error.message}`, { isError: true });
-        } finally {
-            DOM.startPracticeBtn.disabled = false;
-        }
-    }
-
-    function saveAllProfiles() {
-        const profiles = JSON.parse(localStorage.getItem('codeGlyphProfiles') || '{}');
-        profiles[currentProfileId] = currentProfile;
-        localStorage.setItem('codeGlyphProfiles', JSON.stringify(profiles));
-    }
-
-    function saveCurrentProfileProgress() {
-        saveAllProfiles();
-    }
-
-    function loadCurrentProfileProgress() {
-        const profiles = JSON.parse(localStorage.getItem('codeGlyphProfiles') || '{}');
-        currentProfile = profiles[currentProfileId] || {};
-        
-        // Migrate old format if needed
-        migrateOldProfile();
-    }
-
-    function migrateOldProfile() {
-        // Check if migration is needed (old format had different structure)
-        for (const char in currentProfile) {
-            const stat = currentProfile[char];
-            if (typeof stat === 'object' && stat !== null) {
-                // Ensure all required fields exist
-                if (stat.successCount === undefined) stat.successCount = 0;
-                if (stat.failCount === undefined) stat.failCount = 0;
-                if (stat.lastPracticed === undefined) stat.lastPracticed = 0;
-                if (stat.interval === undefined) stat.interval = 1;
-                if (stat.nextReview === undefined) stat.nextReview = 0;
-            }
-        }
-        saveAllProfiles();
-    }
-
-    function updateStats() {
-        const text = DOM.practiceTextInput.value;
-        const uniqueChars = [...new Set(text.replace(/\s/g, ''))].filter(c => /[\u4e00-\u9fff]/.test(c));
-        DOM.totalCharsSpan.textContent = uniqueChars.length;
-        
-        const pendingCount = uniqueChars.filter(char => {
-            const stat = currentProfile[char];
-            return !stat || stat.successCount === 0;
-        }).length;
-        DOM.pendingCharsSpan.textContent = pendingCount;
-    }
-
-    function updateUIForSelection() {
-        const textSelection = DOM.textSelect.value;
-        if (textSelection === 'custom') {
-            DOM.customTextControls.style.display = 'block';
-            DOM.practiceTextInput.value = '';
-        } else {
-            DOM.customTextControls.style.display = 'none';
-            DOM.practiceTextInput.value = PREDEFINED_TEXTS[textSelection] || '';
-        }
-    }
-
-    async function handleDictSelection() {
-        currentProfileId = DOM.dictSelect.value;
-        localStorage.setItem('lastDictSelection', currentProfileId);
-        loadCurrentProfileProgress();
-        
-        const selection = DOM.dictSelect.value;
-        if (selection === 'custom') {
-            // Load custom dict from localStorage
-            const savedContent = localStorage.getItem('customDictContent');
-            if (savedContent) {
-                try {
-                    dictionary = {};
-                    const allContents = JSON.parse(savedContent);
-                    allContents.forEach(contents => parseAndMergeDict(contents));
-                    const displayName = customDictName || '自定义码表';
-                    showStatusMessage(`${displayName} 加载完成 (${Object.keys(dictionary).length}字)`);
-                } catch (e) {
-                    showStatusMessage('自定义码表加载失败，请重新上传', { isError: true });
-                }
-            } else {
-                showStatusMessage('请先上传码表文件', { isError: true });
-            }
-        } else if (PREDEFINED_DICTS[selection]) {
-            dictionary = {};
-            await fetchRemoteDict(PREDEFINED_DICTS[selection]);
-        }
-        updateStats();
+        const average = sessionStats.recallSamples ? `${(sessionStats.totalRecallMs / sessionStats.recallSamples / 1000).toFixed(1)}s` : '—';
+        DOM.sessionStats.textContent = `流畅 ${sessionStats.fluent} · 犹豫 ${sessionStats.slow} · 需重练 ${sessionStats.failed} · 平均回忆 ${average}`;
     }
 
     function startPracticeSession() {
-        const text = DOM.practiceTextInput.value;
-        practiceSet = [...new Set(text.replace(/\s/g, ''))].filter(c => /[\u4e00-\u9fff]/.test(c) && dictionary[c]);
-        
-        if (practiceSet.length === 0) {
-            showStatusMessage('没有可练习的字符，请检查文本和码表', { isError: true });
+        if (isLoading || storageError) return;
+        practiceSet = getPracticeSet();
+        if (!practiceSet.length) {
+            showStatusMessage('没有符合条件的字，请检查文本、码表和码长筛选。', { isError: true });
             return;
         }
-        
-        sessionMistakeQueue = [];
-        sessionCorrectCount = 0;
-        sessionWrongCount = 0;
-        
-        // Hide setup, show practice (keep stats visible)
-        document.querySelectorAll('.setup-section').forEach(el => el.style.display = 'none');
-        DOM.sessionStats.style.display = 'block';
+        cancelQuestionTimers();
+        sessionQueue = isContinuous() ? [] : buildSessionQueue();
+        sessionMistakeQueue = practiceSet.filter(char => peekCharStat(char).learningStep < 3)
+            .map(char => ({ char, kind: 'learning', readyAfter: 0 }));
+        if (!isContinuous() && !sessionQueue.length && !sessionMistakeQueue.some(item => peekCharStat(item.char).nextReview <= Date.now())) {
+            showStatusMessage('本范围暂无到期复习或可加入的新字。可以换一组字，或稍后继续。');
+            return;
+        }
+        store('codeGlyphNewLimit', String(getNewLimit()));
+        continuousRecent = [];
+        previousRecallResult = null;
+        sessionStats = { answered: 0, fluent: 0, slow: 0, failed: 0, totalRecallMs: 0, recallSamples: 0 };
+        document.querySelectorAll('.setup-section').forEach(el => { el.hidden = true; });
+        DOM.inputArea.hidden = false;
+        DOM.exitPracticeBtn.hidden = false;
+        DOM.sessionStats.hidden = false;
+        DOM.characterDisplay.classList.remove('app-title');
+        showStatusMessage('');
         updateSessionStats();
-        DOM.inputArea.style.display = 'block';
-        DOM.exitPracticeBtn.style.display = 'block';
-        
         nextCharacter();
-        DOM.typingInput.focus();
     }
 
     function nextCharacter() {
-        currentCharacter = getNextChar();
+        cancelQuestionTimers();
+        if (storageError) { exitPractice(); return; }
+        const task = getNextChar();
+        if (!task) { finishSession(); return; }
+        currentCharacter = task.char;
+        continuousRecent.push(currentCharacter);
+        if (continuousRecent.length > 8) continuousRecent.shift();
+        const stat = getCharStat(currentCharacter);
+        if (!isLearned(stat)) {
+            stat.introducedOn = localDay();
+            if (!saveCurrentProfileProgress()) { exitPractice(); return; }
+        }
+        phase = 'question';
+        question = { startedAt: performance.now(), pausedMs: 0, pausedAt: document.hidden ? performance.now() : null,
+            recallMs: null, lastInputAt: null, maxGapMs: 0, hinted: false, invalid: false, overtyped: false,
+            hesitationRecorded: false, waitingForMore: false, composing: false, task };
         DOM.characterDisplay.textContent = currentCharacter;
-        DOM.characterDisplay.classList.remove('app-title');
         DOM.typingInput.value = '';
+        DOM.typingInput.readOnly = false;
+        DOM.typingInput.classList.remove('shake');
+        DOM.typingInput.style.borderColor = '';
+        DOM.typingInput.placeholder = isAutomatic() ? '输入编码，停键后自动判题' : '输入编码，再按空格或 Enter 提交';
+        DOM.hintDisplay.textContent = '';
+        DOM.feedbackDisplay.textContent = previousRecallResult ? `上一字：${previousRecallResult.char} · ${previousRecallResult.result}` : '';
+        DOM.feedbackDisplay.className = previousRecallResult?.independent ? 'status-success' : '';
+        DOM.submitBtn.textContent = isAutomatic() ? '立即判题' : '提交';
+        DOM.hintBtn.disabled = false;
+        DOM.sessionGuide.textContent = (isAutomatic() ? `停键 ${getAutoDelay()}ms 自动判题` : '空格 / Enter 提交') +
+            (isContinuous() ? ' · Esc 停止' : ` · 本轮还有 ${sessionQueue.length + sessionMistakeQueue.length + 1} 题`);
+        DOM.typingInput.focus();
+        updateStats();
+    }
+
+    function activeElapsed() {
+        const now = performance.now();
+        return Math.max(0, now - question.startedAt - question.pausedMs -
+            (question.pausedAt === null ? 0 : now - question.pausedAt));
+    }
+
+    function recordInput(event) {
+        if (phase !== 'question' || !question) return;
+        if (event?.isComposing) {
+            question.composing = true;
+            clearTimeout(autoSubmitTimer);
+            clearTimeout(hesitationTimer);
+            return;
+        }
+        recordPrefixHesitation(); // Catch a long gap even if its timer has not run yet.
+        const input = DOM.typingInput.value;
+        const elapsed = activeElapsed();
+        if (input && question.recallMs === null) question.recallMs = elapsed;
+        if (question.lastInputAt !== null) question.maxGapMs = Math.max(question.maxGapMs, elapsed - question.lastInputAt);
+        if (input || question.lastInputAt !== null) question.lastInputAt = elapsed;
+        const targets = getTargetCodes(currentCharacter);
+        if (input && targets.every(code => !code.startsWith(input))) question.invalid = true;
+        if (targets.some(code => input.length > code.length && input.startsWith(code))) question.overtyped = true;
+        question.waitingForMore = Boolean(input) && targets.some(code => code.length > input.length && code.startsWith(input));
+        schedulePrefixHesitation();
+        if (event) scheduleAutomaticSubmission();
+    }
+
+    function recordHesitation() {
+        if (question.hesitationRecorded) return;
+        question.hesitationRecorded = true;
+        const stat = getCharStat(currentCharacter);
+        const now = Date.now();
+        stat.slowCount++;
+        sessionStats.slow++;
+        stat.lastPracticed = now;
+        startRelearning(stat, now, (phase === 'question' ? 1 : 0) + 2);
+        saveCurrentProfileProgress();
+        updateSessionStats();
+    }
+
+    function recordPrefixHesitation() {
+        if (phase !== 'question' || !question || question.pausedAt !== null || question.composing ||
+            question.hesitationRecorded || !question.waitingForMore || question.hinted || question.invalid || question.overtyped) return;
+        const gap = activeElapsed() - question.lastInputAt;
+        if (gap <= FLUENT_KEY_GAP_MS) return;
+        question.maxGapMs = Math.max(question.maxGapMs, gap);
+        recordHesitation();
+        DOM.feedbackDisplay.textContent = '犹豫已记录，可以继续输入';
+        DOM.feedbackDisplay.className = '';
+    }
+
+    function schedulePrefixHesitation() {
+        clearTimeout(hesitationTimer);
+        hesitationTimer = null;
+        if (phase !== 'question' || !question || document.hidden || question.composing ||
+            question.hesitationRecorded || !question.waitingForMore || question.hinted || question.invalid || question.overtyped) return;
+        const owner = question;
+        const remaining = FLUENT_KEY_GAP_MS - (activeElapsed() - question.lastInputAt);
+        hesitationTimer = setTimeout(() => {
+            if (phase === 'question' && question === owner && !document.hidden) {
+                recordPrefixHesitation();
+                if (!question.hesitationRecorded) schedulePrefixHesitation();
+            }
+        }, Math.max(1, remaining + 1));
+    }
+
+    function scheduleAutomaticSubmission() {
+        clearTimeout(autoSubmitTimer);
+        autoSubmitTimer = null;
+        if (!isAutomatic() || phase !== 'question' || document.hidden || question.composing) return;
+        const input = DOM.typingInput.value;
+        if (!input) return;
+        const targets = getTargetCodes(currentCharacter);
+        const complete = targets.some(code => input.length >= code.length);
+        const wrong = targets.every(code => !code.startsWith(input));
+        if (!complete && !wrong) return;
+        const owner = question;
+        autoSubmitTimer = setTimeout(() => {
+            if (phase === 'question' && question === owner && !document.hidden && DOM.typingInput.value === input) {
+                handleInputComplete({ automatic: true });
+            }
+        }, getAutoDelay());
+    }
+
+    function scheduleAutomaticAdvance() {
+        clearTimeout(advanceTimer);
+        advanceTimer = null;
+        if (!isAutomatic() || phase !== 'feedback' || document.hidden || storageError) return;
+        const owner = question;
+        advanceTimer = setTimeout(() => {
+            if (phase === 'feedback' && question === owner && !document.hidden) nextCharacter();
+        }, previousRecallResult?.independent ? 80 : 1200);
+    }
+
+    function showHint() {
+        if (phase !== 'question') return;
+        recordPrefixHesitation();
+        clearTimeout(autoSubmitTimer);
+        clearTimeout(hesitationTimer);
+        question.hinted = true;
+        DOM.hintDisplay.textContent = `${currentCharacter} → ${getTargetCodes(currentCharacter).join(' / ')}`;
+        DOM.hintBtn.disabled = true;
         DOM.typingInput.focus();
     }
 
+    function gradeAnswer(input, targets) {
+        if (!input) return '未作答';
+        if (targets.includes(input)) {
+            if (question.hinted) return '看提示后完成';
+            if (question.overtyped || question.invalid) return '纠正后完成';
+            return !question.hesitationRecorded && question.recallMs <= FLUENT_RECALL_MS && question.maxGapMs <= FLUENT_KEY_GAP_MS ? '流畅' : '犹豫';
+        }
+        if (targets.some(code => input.startsWith(code))) return '打过';
+        if (targets.some(code => code.startsWith(input))) return '打少';
+        if ((dictionary[currentCharacter] || []).includes(input)) return '非目标码';
+        return '打错';
+    }
+
+    function handleInputComplete({ automatic = false } = {}) {
+        if (phase !== 'question' || !question) return;
+        if (!automatic) recordInput();
+        cancelQuestionTimers();
+        phase = 'feedback'; // Lock before touching counters or storage.
+        const input = DOM.typingInput.value;
+        const targets = getTargetCodes(currentCharacter);
+        const result = gradeAnswer(input, targets);
+        const stat = getCharStat(currentCharacter);
+        const now = Date.now();
+        const independent = result === '流畅' || result === '犹豫';
+        previousRecallResult = { char: currentCharacter, result, independent };
+        stat.lastPracticed = now;
+        sessionStats.answered++;
+        if (question.recallMs !== null) {
+            stat.lastRecallMs = Math.round(question.recallMs);
+            stat.totalRecallMs += stat.lastRecallMs;
+            stat.recallSamples++;
+            sessionStats.totalRecallMs += stat.lastRecallMs;
+            sessionStats.recallSamples++;
+        }
+        if (question.hinted) stat.hintCount++;
+        if (question.overtyped) stat.overtypedCount++;
+        if (independent) {
+            stat.successCount++;
+            if (result === '流畅') {
+                stat.fluentCount++;
+                sessionStats.fluent++;
+            }
+        } else {
+            stat.failCount++;
+            stat.streak = 0;
+            stat.interval = 1;
+            sessionStats.failed++;
+            if (result === '纠正后完成') stat.correctedCount++;
+        }
+        scheduleAnswer(stat, result, now);
+        saveCurrentProfileProgress();
+        DOM.typingInput.readOnly = true;
+        DOM.typingInput.style.borderColor = independent ? 'var(--success-color)' : 'var(--danger-color)';
+        if (!independent) DOM.typingInput.classList.add('shake');
+        DOM.hintDisplay.textContent = `${currentCharacter} → ${targets.join(' / ')}`;
+        const recall = question.recallMs === null ? '未开始输入' : `回忆 ${(question.recallMs / 1000).toFixed(1)}s`;
+        const elapsed = automatic ? question.lastInputAt : activeElapsed();
+        DOM.feedbackDisplay.textContent = `${result} · ${recall} · 总用时 ${(elapsed / 1000).toFixed(1)}s`;
+        DOM.feedbackDisplay.className = independent ? 'status-success' : 'status-error';
+        DOM.hintBtn.disabled = true;
+        DOM.submitBtn.textContent = '下一题';
+        DOM.sessionGuide.textContent = isAutomatic() ? '自动换字 · 空格 / Enter 可立即继续' : '空格 / Enter 下一题';
+        updateStats();
+        updateSessionStats();
+        scheduleAutomaticAdvance();
+    }
+
+    function submitOrContinue() {
+        if (phase === 'question') handleInputComplete();
+        else if (phase === 'feedback') nextCharacter();
+    }
+
     function exitPractice() {
-        // Show setup, hide practice
-        document.querySelectorAll('.setup-section').forEach(el => el.style.display = 'flex');
-        const gridSection = document.querySelector('.setup-section[style*="grid"]');
-        if (gridSection) gridSection.style.display = 'grid';
-        document.getElementById('stats').style.display = 'block';
-        DOM.sessionStats.style.display = 'none';
-        DOM.inputArea.style.display = 'none';
-        DOM.exitPracticeBtn.style.display = 'none';
+        recordPrefixHesitation();
+        cancelQuestionTimers();
+        phase = 'idle';
+        currentCharacter = null;
+        question = null;
+        sessionQueue = [];
+        sessionMistakeQueue = [];
+        document.querySelectorAll('.setup-section').forEach(el => { el.hidden = false; });
+        DOM.inputArea.hidden = true;
+        DOM.exitPracticeBtn.hidden = true;
         DOM.characterDisplay.textContent = '码上生花';
         DOM.characterDisplay.classList.add('app-title');
         DOM.hintDisplay.textContent = '';
+        DOM.feedbackDisplay.textContent = '';
         updateStats();
+    }
+
+    function finishSession() {
+        const deferred = sessionMistakeQueue.length;
+        exitPractice();
+        showStatusMessage(`本轮完成，共 ${sessionStats.answered} 次作答。${deferred ? '待强化的字已安排稍后复习。' : '到期字和本轮新字已练完。'}`);
+    }
+
+    function updateUIForSelection() {
+        const selection = DOM.textSelect.value;
+        DOM.customTextControls.hidden = selection !== 'custom';
+        if (selection !== 'custom') {
+            const slices = { top500: [0, 500], mid500: [500, 1000], last500: [1000, 1500], top1000: [0, 1000], top1500: [0, 1500] };
+            const bounds = slices[selection];
+            DOM.practiceTextInput.value = currentProfileId === 'tiger_sentence' && bounds
+                ? [...TIGER_FREQUENCY].slice(...bounds).join('') : PREDEFINED_TEXTS[selection] || '';
+        }
+        updateStats();
+    }
+
+    // Keep the original Rime YAML format, including multiple spelling records.
+    function parseAndMergeDict(contents) {
+        let dataSection = false;
+        for (const line of contents.split('\n')) {
+            if (line.trim() === '---') { dataSection = true; continue; }
+            if (!dataSection) continue;
+            const trimmedLine = line.trim();
+            if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+            const parts = trimmedLine.split('\t');
+            if (parts.length < 2) continue;
+            const char = parts[0].trim(), code = parts[1].trim();
+            if ([...char].length !== 1 || !code) continue;
+            if (!dictionary[char]) dictionary[char] = [];
+            if (!dictionary[char].includes(code)) dictionary[char].push(code);
+        }
+    }
+
+    function parsePlainDict(contents) {
+        for (const line of contents.split('\n')) {
+            if (!line.trim() || line.trim().startsWith('#')) continue;
+            const [char, code] = line.trim().split(/\s+/);
+            if ([...(char || '')].length !== 1 || !/^[a-z]+$/.test(code || '')) continue;
+            if (!dictionary[char]) dictionary[char] = [];
+            if (!dictionary[char].includes(code)) dictionary[char].push(code);
+        }
+    }
+
+    function parseContents(contents) {
+        if (/^---\s*$/m.test(contents)) parseAndMergeDict(contents);
+        else parsePlainDict(contents);
+    }
+
+    function selectTigerCodes(contents) {
+        const exact = new Map(), characterCodes = new Map();
+        for (const line of contents.split('\n')) {
+            if (!line.trim() || line.trim().startsWith('#')) continue;
+            const [text, code] = line.trim().split(/\s+/);
+            if (!text || !/^[a-z]+$/.test(code || '')) continue;
+            if (!exact.has(code)) exact.set(code, []);
+            if (!exact.get(code).includes(text)) exact.get(code).push(text);
+            if ([...text].length === 1) {
+                if (!characterCodes.has(text)) characterCodes.set(text, []);
+                if (!characterCodes.get(text).includes(code)) characterCodes.get(text).push(code);
+            }
+        }
+        const selected = Object.create(null);
+        for (const [char, codes] of characterCodes) {
+            const legal = codes.filter(code => code.length >= 2);
+            const first = legal.filter(code => exact.get(code)[0] === char);
+            const candidates = first.length ? first : legal;
+            const chosen = candidates.reduce((best, code) => !best || code.length < best.length ? code : best, null);
+            if (chosen) selected[char] = [chosen];
+        }
+        return selected;
+    }
+
+    function mappingIdentity(mapping, tiger = false) {
+        const rows = Object.keys(mapping).sort().map(char => `${char}\t${[...mapping[char]].sort().join('/')}`);
+        // Two independently seeded 32-bit hashes; stable across file names and upload order.
+        let a = 2166136261, b = 2246822507;
+        for (const codepoint of `${tiger ? 'tiger-primary' : 'shortest'}\n${rows.join('\n')}`) {
+            a = Math.imul(a ^ codepoint.codePointAt(0), 16777619) >>> 0;
+            b = Math.imul(b ^ codepoint.codePointAt(0), 3266489909) >>> 0;
+        }
+        return `dict-${a.toString(16).padStart(8, '0')}${b.toString(16).padStart(8, '0')}`;
+    }
+
+    function extractDictName(contents) {
+        return contents.match(/^name:\s*["']?(.+?)["']?\s*$/m)?.[1] || '';
+    }
+
+    function ensureCustomDictOptions() {
+        for (const [id, item] of Object.entries(customDictionaries)) {
+            let option = [...DOM.dictSelect.options].find(option => option.value === id);
+            if (!option) {
+                option = document.createElement('option');
+                option.value = id;
+                DOM.dictSelect.appendChild(option);
+            }
+            option.textContent = item.name;
+        }
+    }
+
+    function validateCustomDictionaries(raw) {
+        if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('无效的码表格式');
+        const result = Object.create(null);
+        for (const [id, item] of Object.entries(raw)) {
+            if (!(id === 'custom' || /^dict-[0-9a-f]{16}$/.test(id)) || !item || typeof item.name !== 'string' ||
+                !Array.isArray(item.contents) || !item.contents.length || !item.contents.every(content => typeof content === 'string') ||
+                (item.tiger !== undefined && typeof item.tiger !== 'boolean')) throw new Error('无效的码表格式');
+            result[id] = item;
+        }
+        return result;
+    }
+
+    function loadCustomMapping(item) {
+        if (item.tiger) dictionary = selectTigerCodes(item.contents.join('\n'));
+        else item.contents.forEach(parseContents);
+    }
+
+    async function handleDictSelection() {
+        const version = ++selectionVersion;
+        currentProfileId = DOM.dictSelect.value;
+        store('lastDictSelection', currentProfileId);
+        loadCurrentProfileProgress();
+        dictionary = Object.create(null);
+        isLoading = true;
+        syncControls();
+        try {
+            if (currentProfileId === 'tiger_sentence') {
+                parsePlainDict(TIGER_PRIMARY_CODES);
+                DOM.dictDescription.textContent = '虎整句主要组句码 · 已内置，可离线练习';
+            } else if (customDictionaries[currentProfileId]) {
+                const item = customDictionaries[currentProfileId];
+                loadCustomMapping(item);
+                DOM.dictDescription.textContent = item.tiger ? '按虎整句主要组句码练习' : '按码表最短码练习';
+            } else if (PREDEFINED_DICTS[currentProfileId]) {
+                showStatusMessage('正在加载飞单码表…');
+                const responses = await Promise.all(PREDEFINED_DICTS[currentProfileId].map(url => fetch(url)));
+                if (responses.some(response => !response.ok)) throw new Error('远程码表下载失败');
+                const contents = await Promise.all(responses.map(response => response.text()));
+                if (version !== selectionVersion) return;
+                contents.forEach(parseAndMergeDict);
+                DOM.dictDescription.textContent = '飞单最短码 · 保留原有学习进度';
+            } else throw new Error('码表不存在');
+            if (!Object.keys(dictionary).length) throw new Error('没有可用的单字编码');
+            if (!storageError) showStatusMessage(`码表已加载，共 ${Object.keys(dictionary).length} 字。`);
+        } catch (error) {
+            dictionary = Object.create(null);
+            showStatusMessage(`码表加载失败：${error.message}`, { isError: true });
+        } finally {
+            if (version === selectionVersion) {
+                isLoading = false;
+                syncControls();
+                updateUIForSelection();
+            }
+        }
+    }
+
+    async function removeDictionary() {
+        const id = currentProfileId;
+        if (phase !== 'idle' || isLoading || !customDictionaries[id] || storageError) return;
+        const next = { ...customDictionaries };
+        delete next[id];
+        const item = customDictionaries[id];
+        const incoming = Object.create(null);
+        let transferred = 0;
+        if (id === 'custom') incoming[mappingIdentity(dictionary, Boolean(item.tiger))] = currentProfile;
+        if (item.tiger || /tiger_sentence|虎整/i.test(item.name)) {
+            const builtin = new Map(TIGER_PRIMARY_CODES.split('\n').map(line => line.split('\t')));
+            const matching = Object.create(null);
+            for (const [char, stat] of Object.entries(currentProfile)) {
+                if (isLearned(stat) && getTargetCodes(char).includes(builtin.get(char))) matching[char] = stat;
+            }
+            incoming.tiger_sentence = matching;
+            transferred = Object.keys(matching).length;
+        }
+        profiles = mergeProfiles(profiles, incoming);
+        currentProfile = profiles[id] || currentProfile;
+        if (!saveCurrentProfileProgress() || !store('codeGlyphDictionaries', next)) return;
+        if (id === 'custom') {
+            try {
+                localStorage.removeItem('customDictContent');
+                localStorage.removeItem('customDictName');
+            } catch (error) {
+                showStatusMessage('旧码表缓存未能移除，学习进度仍保留。', { isError: true });
+                return;
+            }
+        }
+        customDictionaries = next;
+        [...DOM.dictSelect.options].find(option => option.value === id)?.remove();
+        DOM.dictSelect.value = 'tiger_sentence';
+        await handleDictSelection();
+        showStatusMessage(`上传码表已移除，原进度保留。${transferred ? `其中 ${transferred} 个字的相同编码进度已并入内置虎整。` : ''}`);
+    }
+
+    async function uploadDictionary(event) {
+        const files = [...event.target.files];
+        event.target.value = '';
+        if (!files.length || phase !== 'idle') return;
+        isLoading = true;
+        syncControls();
+        const previousMapping = dictionary;
+        try {
+            const contents = await Promise.all(files.map(file => file.text()));
+            const tiger = contents.some(content => content.includes('# TigerSentence code table'));
+            dictionary = Object.create(null);
+            if (tiger) dictionary = selectTigerCodes(contents.join('\n'));
+            else contents.forEach(parseContents);
+            if (!Object.keys(dictionary).length) throw new Error('没有可用的单字编码');
+            const id = mappingIdentity(dictionary, tiger);
+            const names = contents.map(extractDictName).filter(Boolean);
+            const name = names.join(' + ') || files.map(file => file.name).join(' + ');
+            customDictionaries[id] = { name, contents, tiger };
+            if (!store('codeGlyphDictionaries', customDictionaries)) return;
+            ensureCustomDictOptions();
+            DOM.dictSelect.value = id;
+            await handleDictSelection();
+        } catch (error) {
+            dictionary = previousMapping;
+            showStatusMessage(`码表读取失败：${error.message}`, { isError: true });
+        } finally {
+            isLoading = false;
+            syncControls();
+            updateStats();
+        }
+    }
+
+    function exportProgress() {
+        const data = { version: 2, exportDate: new Date().toISOString(), profiles, customDictionaries };
+        const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `codeglyph-progress-${localDay()}.json`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showStatusMessage('进度与自定义码表已导出。');
+    }
+
+    function mergeProfiles(existing, incoming) {
+        const merged = normalizeProfiles(existing);
+        for (const [id, profile] of Object.entries(normalizeProfiles(incoming))) {
+            if (!merged[id]) merged[id] = Object.create(null);
+            for (const [char, stat] of Object.entries(profile)) {
+                if (!merged[id][char] || stat.lastPracticed >= merged[id][char].lastPracticed) merged[id][char] = stat;
+            }
+        }
+        return merged;
+    }
+
+    async function importProgress(event) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file || phase !== 'idle') return;
+        isLoading = true;
+        syncControls();
+        try {
+            const data = JSON.parse(await file.text());
+            if (!data || !data.profiles || (data.version !== undefined && ![1, 2].includes(data.version))) throw new Error('无效的备份格式');
+            const merged = mergeProfiles(profiles, data.profiles);
+            const dictionaries = { ...customDictionaries, ...validateCustomDictionaries(data.customDictionaries || {}) };
+            // Validate everything before writing; preserve profiles absent from the backup.
+            if (!store('codeGlyphDictionaries', dictionaries) || !store('codeGlyphProfiles', merged)) return;
+            profiles = merged;
+            customDictionaries = dictionaries;
+            ensureCustomDictOptions();
+            await handleDictSelection();
+            showStatusMessage('进度已合并导入；同一字保留最近一次练习记录。');
+        } catch (error) {
+            showStatusMessage(`导入失败：${error.message}`, { isError: true });
+        } finally {
+            isLoading = false;
+            syncControls();
+        }
     }
 
     function clearProgress() {
-        const profileName = DOM.dictSelect.options[DOM.dictSelect.selectedIndex].text;
-        if (confirm(`确定要清空「${profileName}」的所有练习进度吗？此操作不可恢复。`)) {
-            currentProfile = {};
-            saveCurrentProfileProgress();
-            showStatusMessage('进度已清空', { isSuccess: true });
-            updateStats();
-        }
-    }
-
-    DOM.textSelect.addEventListener('change', () => {
-        localStorage.setItem('lastTextSelection', DOM.textSelect.value);
-        updateUIForSelection();
+        if (phase !== 'idle') return;
+        const name = DOM.dictSelect.selectedOptions[0].text;
+        if (!confirm(`确定清空「${name}」的学习进度吗？其他码表不受影响。`)) return;
+        currentProfile = Object.create(null);
+        saveCurrentProfileProgress();
         updateStats();
+        showStatusMessage('当前码表进度已清空。');
+    }
+
+    DOM.typingInput.addEventListener('input', recordInput);
+    DOM.typingInput.addEventListener('compositionstart', () => {
+        if (phase !== 'question') return;
+        recordPrefixHesitation();
+        question.composing = true;
+        clearTimeout(autoSubmitTimer);
+        clearTimeout(hesitationTimer);
     });
-    DOM.practiceTextInput.addEventListener('input', updateStats);
-
-    // Extract name from YAML header (between --- and ...)
-    function extractDictName(contents) {
-        const lines = contents.split('\n');
-        let inHeader = false;
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed === '---') { inHeader = true; continue; }
-            if (trimmed === '...') break;
-            if (!inHeader) continue;
-            const match = trimmed.match(/^name:\s*["']?(.+?)["']?\s*$/);
-            if (match) return match[1];
+    DOM.typingInput.addEventListener('compositionend', event => {
+        if (phase !== 'question') return;
+        question.composing = false;
+        if (question.lastInputAt !== null) question.lastInputAt = activeElapsed();
+        recordInput(event);
+    });
+    DOM.typingInput.addEventListener('keydown', event => {
+        if (event.isComposing || event.keyCode === 229) return;
+        if (event.repeat && [' ', 'Enter', 'ArrowDown', 'F1'].includes(event.key)) {
+            event.preventDefault();
+            return;
         }
-        return null;
-    }
-
-    function ensureCustomDictOption(name) {
-        const displayName = name || customDictName || '自定义';
-        let option = DOM.dictSelect.querySelector('option[value="custom"]');
-        if (!option) {
-            option = document.createElement('option');
-            option.value = 'custom';
-            DOM.dictSelect.appendChild(option);
-        }
-        option.textContent = displayName;
-    }
-
-    DOM.dictUpload.addEventListener('change', async (event) => {
-        const files = event.target.files; if (!files.length) return;
-
-        // Set profile to custom and load progress
-        currentProfileId = 'custom';
-        localStorage.setItem('lastDictSelection', 'custom');
-        loadCurrentProfileProgress();
-
-        DOM.startPracticeBtn.disabled = true;
-        try {
-            const readFile = (file) => new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = reject;
-                reader.readAsText(file);
-            });
-            const allContents = await Promise.all(Array.from(files).map(readFile));
-            dictionary = {}; // Clear the dictionary cleanly before parsing
-            
-            // Extract names from all files and join with "+"
-            const names = allContents
-                .map(contents => extractDictName(contents))
-                .filter(name => name);
-            customDictName = names.join('+');
-            // Save name and content to localStorage for persistence
-            localStorage.setItem('customDictName', customDictName);
-            localStorage.setItem('customDictContent', JSON.stringify(allContents));
-            
-            allContents.forEach(contents => parseAndMergeDict(contents));
-            
-            // Add custom option with name and select it
-            ensureCustomDictOption(customDictName);
-            DOM.dictSelect.value = 'custom';
-            
-            const displayName = customDictName || '自定义码表';
-            showStatusMessage(`${displayName} 加载完成 (${Object.keys(dictionary).length}字)`);
-        } catch(error) {
-            showStatusMessage(`码表读取失败: ${error.message}`, { isError: true });
-            dictionary = {}; // Ensure dictionary is empty on failure
-        } finally {
-            DOM.startPracticeBtn.disabled = false;
-            updateStats();
+        if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            submitOrContinue();
+        } else if (event.key === 'ArrowDown' || event.key === 'F1') {
+            event.preventDefault();
+            showHint();
         }
     });
-
-    function parseAndMergeDict(contents){const lines=contents.split("\n");let dataSection=!1;for(const line of lines){if("---"===line.trim()){dataSection=!0;continue}if(!dataSection)continue;const trimmedLine=line.trim();if(!trimmedLine||trimmedLine.startsWith("#"))continue;const parts=trimmedLine.split("\t");if(parts.length<2)continue;const char=parts[0],code=parts[1];if(char&&code&&1===char.trim().length){dictionary[char]||(dictionary[char]=[]),dictionary[char].includes(code)||dictionary[char].push(code)}}}
-    function flashFeedback(isCorrect){DOM.typingInput.style.borderColor=isCorrect?"var(--success-color)":"var(--danger-color)",isCorrect||DOM.typingInput.classList.add("shake"),setTimeout(()=>{DOM.typingInput.style.borderColor="var(--medium-gray-color)",isCorrect||DOM.typingInput.classList.remove("shake")},500)}
-    
-    DOM.typingInput.addEventListener("input", (e) => {
-        if (!currentCharacter) return;
-        const userInput = e.target.value;
-        const correctCodes = dictionary[currentCharacter];
-        if (!correctCodes) return;
-
-        if (correctCodes.every(code => !code.startsWith(userInput))) {
-            return handleInputComplete(false, userInput);
-        }
-        
-        if (correctCodes.includes(userInput)) {
-            flashFeedback(true);
-            // Check if there's a shorter code
-            const shorterCodes = correctCodes.filter(code => code.length < userInput.length);
-            if (shorterCodes.length > 0) {
-                DOM.hintDisplay.textContent = `更短: ${shorterCodes.join(' / ')}`;
-                DOM.hintDisplay.classList.add('status-success');
-            }
-            handleInputComplete(true, userInput);
-        }
-    });
-
-    function exportProgress() {
-        const profiles = JSON.parse(localStorage.getItem('codeGlyphProfiles') || '{}');
-        const data = {
-            version: 1,
-            exportDate: new Date().toISOString(),
-            profiles: profiles
-        };
-        
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `codeglyph-progress-${new Date().toISOString().slice(0,10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        showStatusMessage('进度已导出', { isSuccess: true });
-    }
-
-    function importProgress(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (data.profiles) {
-                    localStorage.setItem('codeGlyphProfiles', JSON.stringify(data.profiles));
-                    loadCurrentProfileProgress();
-                    updateStats();
-                    showStatusMessage('进度已导入', { isSuccess: true });
-                } else {
-                    throw new Error('Invalid format');
-                }
-            } catch (error) {
-                showStatusMessage('导入失败: 无效的文件格式', { isError: true });
-            }
-        };
-        reader.readAsText(file);
-        event.target.value = ''; // Reset input
-    }
-
+    DOM.submitBtn.addEventListener('click', () => { submitOrContinue(); DOM.typingInput.focus(); });
+    DOM.hintBtn.addEventListener('click', showHint);
     DOM.startPracticeBtn.addEventListener('click', startPracticeSession);
     DOM.exitPracticeBtn.addEventListener('click', exitPractice);
     DOM.clearProgressBtn.addEventListener('click', clearProgress);
     DOM.exportProgressBtn.addEventListener('click', exportProgress);
     DOM.dictSelect.addEventListener('change', handleDictSelection);
+    DOM.removeDictBtn.addEventListener('click', removeDictionary);
     DOM.importProgressBtn.addEventListener('click', () => DOM.importFileInput.click());
     DOM.importFileInput.addEventListener('change', importProgress);
     DOM.uploadDictBtn.addEventListener('click', () => DOM.dictUpload.click());
-    
-    // Theme toggle
-    function toggleTheme() {
-        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        if (isDark) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('theme', 'light');
+    DOM.dictUpload.addEventListener('change', uploadDictionary);
+    DOM.textSelect.addEventListener('change', () => {
+        store('lastTextSelection', DOM.textSelect.value);
+        updateUIForSelection();
+    });
+    DOM.practiceTextInput.addEventListener('input', updateStats);
+    DOM.codeLength.addEventListener('change', () => { store('codeGlyphCodeLength', DOM.codeLength.value); updateStats(); });
+    DOM.newLimit.addEventListener('change', () => {
+        DOM.newLimit.value = getNewLimit();
+        store('codeGlyphNewLimit', String(getNewLimit()));
+        updateStats();
+    });
+    DOM.practiceMode.addEventListener('change', () => {
+        store('codeGlyphPracticeMode', DOM.practiceMode.value);
+        updatePracticeControls();
+    });
+    DOM.inputMode.addEventListener('change', () => {
+        store('codeGlyphInputMode', DOM.inputMode.value);
+        updatePracticeControls();
+    });
+    DOM.autoDelay.addEventListener('change', () => { store('codeGlyphAutoDelay', DOM.autoDelay.value); });
+    DOM.themeToggle.addEventListener('click', () => {
+        const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+        document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        store('theme', dark ? 'dark' : 'light');
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && phase !== 'idle') exitPractice();
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (!question) return;
+        if (document.hidden) {
+            recordPrefixHesitation();
+            cancelQuestionTimers();
+            if (phase === 'question' && question.pausedAt === null) question.pausedAt = performance.now();
         } else {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-        }
-    }
-    DOM.themeToggle.addEventListener('click', toggleTheme);
-    
-    // Initialize theme
-    if (localStorage.getItem('theme') === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-    }
-    
-    // Keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        // Esc to exit practice
-        if (e.key === 'Escape' && DOM.inputArea.style.display !== 'none') {
-            exitPractice();
+            if (question.pausedAt !== null) {
+                question.pausedMs += performance.now() - question.pausedAt;
+                question.pausedAt = null;
+            }
+            if (phase === 'question') {
+                schedulePrefixHesitation();
+                scheduleAutomaticSubmission();
+            }
+            else if (phase === 'feedback') scheduleAutomaticAdvance();
         }
     });
-    
-    function initializeApp() {
-        const lastDict = localStorage.getItem('lastDictSelection') || 'feidan';
-        const lastText = localStorage.getItem('lastTextSelection') || 'custom';
-        
-        // Restore custom dict name from localStorage
-        customDictName = localStorage.getItem('customDictName') || '';
-        const hasCustomDict = localStorage.getItem('customDictContent');
-        
-        // If user has uploaded a custom dict before, add the option
-        if (hasCustomDict) {
-            ensureCustomDictOption(customDictName);
-        }
-        
-        // Select the appropriate dict
-        if (lastDict === 'custom' && hasCustomDict) {
-            DOM.dictSelect.value = 'custom';
-            handleDictSelection();
-        } else if (PREDEFINED_DICTS[lastDict]) {
-            DOM.dictSelect.value = lastDict;
-            handleDictSelection();
-        } else {
-            DOM.dictSelect.value = 'feidan';
-            handleDictSelection();
-        }
-        DOM.textSelect.value = lastText;
-        
-        updateUIForSelection();
-        console.log('CodeGlyph Adaptive. Ready.');
-    }
+    window.addEventListener('pagehide', () => { recordPrefixHesitation(); cancelQuestionTimers(); });
 
+    async function initializeApp() {
+        try {
+            profiles = normalizeProfiles(readStoredJSON('codeGlyphProfiles', {}));
+            customDictionaries = validateCustomDictionaries(readStoredJSON('codeGlyphDictionaries', {}));
+            // Retain the old custom profile; its dictionary remains explicitly labeled as legacy.
+            const legacy = readStoredJSON('customDictContent', null);
+            if (legacy && !customDictionaries.custom) {
+                if (!Array.isArray(legacy) || !legacy.every(content => typeof content === 'string')) throw new Error('旧码表格式无效');
+                customDictionaries.custom = { name: `${localStorage.getItem('customDictName') || '自定义码表'}（旧进度）`, contents: legacy };
+            }
+            ensureCustomDictOptions();
+            const lastDict = localStorage.getItem('lastDictSelection') || 'tiger_sentence';
+            DOM.dictSelect.value = [...DOM.dictSelect.options].some(option => option.value === lastDict) ? lastDict : 'tiger_sentence';
+            DOM.textSelect.value = localStorage.getItem('lastTextSelection') || 'top500';
+            if (!DOM.textSelect.value) DOM.textSelect.value = 'top500';
+            DOM.codeLength.value = localStorage.getItem('codeGlyphCodeLength') || '0';
+            if (!DOM.codeLength.value) DOM.codeLength.value = '0';
+            DOM.newLimit.value = localStorage.getItem('codeGlyphNewLimit') || '20';
+            DOM.newLimit.value = getNewLimit();
+            DOM.practiceMode.value = localStorage.getItem('codeGlyphPracticeMode') === 'review' ? 'review' : 'continuous';
+            DOM.inputMode.value = localStorage.getItem('codeGlyphInputMode') === 'manual' ? 'manual' : 'auto';
+            DOM.autoDelay.value = localStorage.getItem('codeGlyphAutoDelay') || '250';
+            if (!DOM.autoDelay.value) DOM.autoDelay.value = '250';
+            updatePracticeControls();
+            if (localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            await handleDictSelection();
+        } catch (error) {
+            storageError = true;
+            showStatusMessage(`本地数据无法读取：${error.message}。原数据未覆盖，请先备份浏览器数据。`, { isError: true });
+            syncControls();
+        }
+    }
     initializeApp();
+
   </script>
 </body>
 </html>
